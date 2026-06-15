@@ -151,6 +151,7 @@
     z-index: 2;
   }
   .vbtn svg { margin-left: 4px; }
+  .vbtn.playing svg { margin-left: 0; }
   .vbtn.hidden { opacity: 0; pointer-events: none; }
   @keyframes ring { 0%,100%{box-shadow:0 0 0 0 rgba(216,232,60,0.45);} 50%{box-shadow:0 0 0 16px rgba(216,232,60,0);} }
 
@@ -235,7 +236,10 @@
           <source src="ace-video.mp4" type="video/mp4" />
         </video>
         <button class="vbtn" id="vbtn" aria-label="Reproducir con sonido">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="#0A2310"><path d="M8 5v14l11-7z"/></svg>
+          <!-- play icon -->
+          <svg id="iconPlay" width="24" height="24" viewBox="0 0 24 24" fill="#0A2310"><path d="M8 5v14l11-7z"/></svg>
+          <!-- pause icon -->
+          <svg id="iconPause" width="24" height="24" viewBox="0 0 24 24" fill="#0A2310" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
         </button>
       </div>
     </div>
@@ -336,21 +340,44 @@
   emailInput.addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
 
   // --- control del vídeo ---
-  const vid = document.getElementById("aceVideo");
-  const vbtn = document.getElementById("vbtn");
+  const vid       = document.getElementById("aceVideo");
+  const vbtn      = document.getElementById("vbtn");
+  const iconPlay  = document.getElementById("iconPlay");
+  const iconPause = document.getElementById("iconPause");
+
+  function showPlay()  { iconPlay.style.display = ""; iconPause.style.display = "none"; vbtn.classList.remove("playing"); vbtn.setAttribute("aria-label","Reproducir con sonido"); }
+  function showPause() { iconPlay.style.display = "none"; iconPause.style.display = ""; vbtn.classList.add("playing"); vbtn.setAttribute("aria-label","Pausar"); }
+
   // arranca en silencio y en bucle para que se vea movimiento al cargar
   vid.play().catch(()=>{});
+
   vbtn.addEventListener("click", () => {
-    vid.currentTime = 0;
-    vid.muted = false;
-    vid.loop = false;
-    vid.play();
-    vbtn.classList.add("hidden");
+    if (vid.paused) {
+      // si estaba pausado manualmente, retomamos con sonido
+      vid.muted = false;
+      vid.loop = false;
+      vid.play();
+      showPause();
+    } else {
+      // primera vez o mientras suena: activar sonido si aún está muted
+      if (vid.muted) {
+        vid.currentTime = 0;
+        vid.muted = false;
+        vid.loop = false;
+        vid.play();
+        showPause();
+      } else {
+        // ya está sonando → pausar
+        vid.pause();
+        showPlay();
+      }
+    }
   });
-  // al terminar, vuelve a mostrar el botón y el bucle silencioso
+
+  // al terminar, vuelve al bucle silencioso y muestra el botón play
   vid.addEventListener("ended", () => {
     vid.muted = true; vid.loop = true; vid.play().catch(()=>{});
-    vbtn.classList.remove("hidden");
+    showPlay();
   });
 
 </script>
