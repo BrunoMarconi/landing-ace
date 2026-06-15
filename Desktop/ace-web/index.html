@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ace — El tenis de Málaga, conectado</title>
+<meta name="description" content="Encuentra con quién jugar al tenis en Málaga. A tu nivel, cerca de ti. Acceso anticipado." />
+<meta property="og:title" content="Ace — El tenis de Málaga, conectado" />
+<meta property="og:description" content="Deja de buscar. Empieza a jugar. Acceso anticipado abierto." />
+<meta property="og:type" content="website" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --grass: #1F7A43;
+    --grass-mid: #196235;
+    --grass-deep: #0E3D1E;
+    --grass-darker: #0A2D16;
+    --line: #FFFFFF;
+    --ball: #D8E83C;
+    --ink: #0A2310;
+    --muted: rgba(255,255,255,0.62);
+    --faint: rgba(255,255,255,0.38);
+    --card: rgba(255,255,255,0.05);
+    --border: rgba(255,255,255,0.10);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--grass-deep);
+    color: var(--line);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+  .display { font-family: 'Anton', sans-serif; font-weight: 400; text-transform: uppercase; letter-spacing: 0.005em; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 32px; }
+
+  /* nav */
+  nav {
+    position: relative; z-index: 5;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 26px 32px; max-width: 1080px; margin: 0 auto;
+  }
+  .logo { font-family:'Anton'; font-size: 26px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .logo .dot { color: var(--ball); }
+  .nav-tag { font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--faint); }
+
+  /* ---------- HERO: two columns ---------- */
+  .hero {
+    position: relative;
+    background:
+      radial-gradient(110% 80% at 75% 0%, var(--grass) 0%, var(--grass-mid) 50%, var(--grass-deep) 100%);
+    padding: 60px 0 88px;
+    overflow: hidden;
+  }
+  .hero-grid {
+    display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 48px; align-items: center;
+  }
+
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--ball); margin-bottom: 26px; font-weight: 600;
+  }
+  .eyebrow::before { content:""; width: 26px; height: 2px; background: var(--ball); }
+
+  .pain { font-size: 15px; color: var(--muted); margin-bottom: 22px; line-height: 1.5; }
+  .pain b { color: var(--line); font-weight: 600; }
+
+  h1.display {
+    font-size: clamp(46px, 6.4vw, 86px);
+    line-height: 0.96;
+    margin-bottom: 26px;
+  }
+  h1 .gold { color: var(--ball); }
+
+  .sub { font-size: clamp(16px, 1.8vw, 19px); color: var(--muted); max-width: 440px; margin-bottom: 38px; }
+
+  /* form */
+  .signup { max-width: 480px; }
+  .field-row {
+    display: flex; gap: 10px; flex-wrap: wrap;
+  }
+  input[type="email"] {
+    flex: 1 1 200px; min-width: 0; padding: 16px 18px;
+    font-size: 16px; font-family: inherit;
+    border: 2px solid var(--border); border-radius: 10px;
+    background: rgba(0,0,0,0.22); color: var(--line);
+    transition: border-color 0.2s;
+  }
+  input[type="email"]::placeholder { color: var(--faint); }
+  input[type="email"]:focus { outline: none; border-color: var(--ball); }
+  .btn-primary {
+    padding: 16px 28px; font-size: 15px; font-weight: 700;
+    font-family: inherit; border: none; border-radius: 10px;
+    background: var(--ball); color: var(--ink); cursor: pointer; white-space: nowrap;
+    transition: transform 0.15s, box-shadow 0.2s;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(216,232,60,0.28); }
+  .btn-primary:disabled { opacity: 0.6; cursor: default; transform: none; box-shadow: none; }
+  .form-note { font-size: 13px; color: var(--faint); margin-top: 14px; }
+
+  /* success */
+  .success { display: none; max-width: 480px; }
+  .success.show { display: block; animation: rise 0.45s ease; }
+  @keyframes rise { from { opacity:0; transform: translateY(8px);} to {opacity:1; transform:none;} }
+  .success h3 { font-family:'Anton'; font-size: 30px; text-transform: uppercase; letter-spacing: 0.01em; margin-bottom: 10px; }
+  .success p { color: var(--muted); margin-bottom: 22px; }
+  .btn-wa {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 15px 24px; font-weight: 700; font-size: 15px; text-decoration: none;
+    border-radius: 10px; background: #25D366; color: #04340f; transition: transform 0.15s;
+  }
+  .btn-wa:hover { transform: translateY(-2px); }
+
+  .counter {
+    margin-top: 40px; padding-top: 26px; border-top: 1px solid var(--border);
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .counter .num { font-family:'Anton'; font-size: 30px; color: var(--ball); }
+  .counter .lbl { font-size: 13px; color: var(--muted); }
+
+  /* ---------- VIDEO SLOT (right column) ---------- */
+  .media {
+    position: relative;
+    aspect-ratio: 4/5;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background:
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.025) 0 2px, transparent 2px 22px),
+      linear-gradient(160deg, var(--grass-mid), var(--grass-darker));
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 32px;
+  }
+  /* court lines inside the slot */
+  .media::before {
+    content:""; position: absolute; inset: 14% 10%;
+    border: 2px solid rgba(255,255,255,0.12); border-radius: 4px;
+  }
+  .media::after {
+    content:""; position: absolute; top: 14%; bottom: 14%; left: 50%;
+    width: 2px; background: rgba(255,255,255,0.12); transform: translateX(-50%);
+  }
+  .media-inner { position: relative; z-index: 1; }
+  .play {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: var(--ball); display:flex; align-items:center; justify-content:center;
+    margin: 0 auto 18px; box-shadow: 0 0 0 0 rgba(216,232,60,0.5);
+    animation: ring 2.6s infinite;
+  }
+  @keyframes ring { 0%,100%{box-shadow:0 0 0 0 rgba(216,232,60,0.45);} 50%{box-shadow:0 0 0 16px rgba(216,232,60,0);} }
+  .play svg { margin-left: 4px; }
+  .media-inner p { color: var(--muted); font-size: 14px; }
+  .media-inner .tag { color: var(--ball); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
+
+  /* ---------- HOW ---------- */
+  .how { padding: 96px 0; background: var(--grass-darker); }
+  .sec-label { font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ball); margin-bottom: 14px; font-weight: 600; }
+  .how h2.display { font-size: clamp(32px, 5vw, 56px); line-height: 0.98; margin-bottom: 54px; }
+  .steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+  .step {
+    padding: 32px 26px; background: var(--card);
+    border: 1px solid var(--border); border-radius: 16px;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .step:hover { transform: translateY(-4px); border-color: rgba(216,232,60,0.4); }
+  .step .idx { font-family:'Anton'; font-size: 44px; color: var(--ball); line-height: 1; margin-bottom: 18px; opacity: 0.9; }
+  .step h4 { font-family:'Anton'; font-size: 21px; text-transform: uppercase; letter-spacing: 0.01em; margin-bottom: 10px; }
+  .step p { color: var(--muted); font-size: 15px; }
+
+  /* ---------- FINAL ---------- */
+  .final {
+    padding: 110px 0; text-align: center;
+    background: radial-gradient(90% 120% at 50% 0%, var(--grass-mid) 0%, var(--grass-deep) 60%, var(--grass-darker) 100%);
+  }
+  .final h2.display { font-size: clamp(36px, 7vw, 76px); line-height: 0.95; margin-bottom: 28px; }
+  .final h2 .gold { color: var(--ball); }
+  .final .btn-primary { font-size: 17px; padding: 18px 40px; }
+
+  footer { padding: 36px 32px; text-align: center; background: var(--grass-darker); border-top: 1px solid var(--border); }
+  footer .logo { font-size: 20px; margin-bottom: 6px; }
+  footer p { font-size: 12px; color: var(--faint); letter-spacing: 0.04em; }
+
+  @media (max-width: 820px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 36px; }
+    .media { aspect-ratio: 16/10; order: -1; }
+    .steps { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) { .play, .pulse { animation: none; } }
+</style>
+</head>
+<body>
+  <nav>
+    <div class="logo">Ace<span class="dot">.</span></div>
+    <div class="nav-tag">Tenis · Málaga</div>
+  </nav>
+
+  <!-- ===================== HERO ===================== -->
+  <header class="hero">
+    <div class="wrap hero-grid">
+      <!-- left: copy + form -->
+      <div>
+        <span class="eyebrow">Acceso anticipado</span>
+        <p class="pain">Escribes en el grupo: <b>"¿alguien para jugar mañana?"</b><br>Doble check gris. Nadie contesta. Otra vez.</p>
+        <h1 class="display">Deja de buscar.<br><span class="gold">Empieza a jugar.</span></h1>
+        <p class="sub">Ace conecta a los jugadores de tenis de Málaga. Rival a tu nivel, cerca de ti, cuando tú quieras.</p>
+
+        <div class="signup" id="signup">
+          <div class="field-row">
+            <input type="email" id="email" placeholder="Tu email" autocomplete="email" />
+            <button class="btn-primary" id="submitBtn">Quiero acceso</button>
+          </div>
+          <p class="form-note" id="formNote">Te avisamos en cuanto abramos en tu zona.</p>
+        </div>
+
+        <div class="success" id="success">
+          <h3>¡Estás dentro!</h3>
+          <p>Te avisaremos en cuanto Ace abra en tu zona. Entra al grupo de fundadores y sé de los primeros en jugar.</p>
+          <a class="btn-wa" id="waLink" href="#" target="_blank" rel="noopener">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-1.6-.8-2.6-1.4-3.7-3.2-.3-.5.3-.5.8-1.5.1-.2 0-.4 0-.5 0-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2 3.1 5 4.3 1.8.8 2.5.8 3.4.7.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.5-.3zM12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.4 1.3 4.9L2 22l5.3-1.4c1.4.8 3 1.2 4.7 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2z"/></svg>
+            Entrar al grupo de fundadores
+          </a>
+        </div>
+
+        <div class="counter">
+          <span class="num" id="count">—</span>
+          <span class="lbl">jugadores ya esperando en Málaga</span>
+        </div>
+      </div>
+
+      <!-- right: video/image slot -->
+      <div class="media">
+        <div class="media-inner">
+          <div class="play">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="#0A2310"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+          <p class="tag">Próximamente</p>
+          <p>El vídeo de Ace irá aquí</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================== HOW ===================== -->
+  <section class="how">
+    <div class="wrap">
+      <p class="sec-label">Cómo funciona</p>
+      <h2 class="display">Tres pasos.<br>Cero excusas.</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="idx">1</div>
+          <h4>Crea tu perfil</h4>
+          <p>Tu nivel y tu zona de Málaga. Treinta segundos y estás dentro.</p>
+        </div>
+        <div class="step">
+          <div class="idx">2</div>
+          <h4>Encuentra rival</h4>
+          <p>Jugadores de tu nivel, cerca de ti, disponibles cuando tú lo estás. Rétalos.</p>
+        </div>
+        <div class="step">
+          <div class="idx">3</div>
+          <h4>Juega y sube</h4>
+          <p>Registra el resultado, sube en el ranking de tu zona y vuelve a por más.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FINAL ===================== -->
+  <section class="final">
+    <div class="wrap">
+      <h2 class="display">El tenis de Málaga,<br><span class="gold">por fin conectado.</span></h2>
+      <button class="btn-primary" onclick="document.getElementById('email').scrollIntoView({behavior:'smooth'}); setTimeout(()=>document.getElementById('email').focus(),500);">Quiero mi acceso</button>
+    </div>
+  </section>
+
+  <footer>
+    <div class="logo">Ace<span class="dot">.</span></div>
+    <p>Hecho en Málaga</p>
+  </footer>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // Config de Firebase (proyecto landing-ace)
+  const firebaseConfig = {
+    apiKey: "AIzaSyBNHre43HzTKZ0DrLOCu9m9XBtLmbWFO7g",
+    authDomain: "landing-ace-d6c5a.firebaseapp.com",
+    projectId: "landing-ace-d6c5a",
+    storageBucket: "landing-ace-d6c5a.firebasestorage.app",
+    messagingSenderId: "705093541961",
+    appId: "1:705093541961:web:838f5110413dc515e2df98"
+  };
+  // Enlace del grupo de WhatsApp de fundadores
+  const WHATSAPP_GROUP_URL = "https://chat.whatsapp.com/FeVmPibUFLbBnPo80LAO18";
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const LEADS = "lista_espera";
+
+  const emailInput = document.getElementById("email");
+  const submitBtn  = document.getElementById("submitBtn");
+  const formNote   = document.getElementById("formNote");
+  const signup     = document.getElementById("signup");
+  const success    = document.getElementById("success");
+  const waLink     = document.getElementById("waLink");
+  const countEl    = document.getElementById("count");
+  waLink.href = WHATSAPP_GROUP_URL;
+
+  // El contador no consulta la BD (las reglas bloquean la lectura para proteger los emails).
+  // Mostramos un número base que sube localmente con cada registro de esta sesión.
+  let localCount = 27;
+  countEl.textContent = localCount;
+
+  const validEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+  async function submit() {
+    const email = emailInput.value.trim().toLowerCase();
+    if (!validEmail(email)) { formNote.textContent = "Escribe un email válido."; formNote.style.color = "#ffd0d0"; emailInput.focus(); return; }
+    submitBtn.disabled = true; submitBtn.textContent = "…";
+    try {
+      // Solo escribimos. No leemos antes (las reglas no lo permiten, y no hace falta).
+      await addDoc(collection(db, LEADS), { email, creado: serverTimestamp(), origen: "landing" });
+      localCount++;
+      countEl.textContent = localCount;
+      signup.style.display = "none";
+      success.classList.add("show");
+    } catch (e) {
+      console.error("Error al guardar:", e);
+      submitBtn.disabled = false; submitBtn.textContent = "Quiero acceso";
+      formNote.textContent = "Algo ha fallado. Reinténtalo."; formNote.style.color = "#ffd0d0";
+    }
+  }
+  submitBtn.addEventListener("click", submit);
+  emailInput.addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
+</script>
+</body>
+</html>
