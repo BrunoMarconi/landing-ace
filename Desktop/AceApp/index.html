@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.6.0/dist/tabler-icons.min.css">
+<style>
+/* ===== TEMA CLARO (por defecto) — azul profesional ===== */
+[data-theme="light"]{
+  --bg:#F7F8FA; --surface:#FFFFFF; --card:#FFFFFF; --card-2:#F1F3F6;
+  --line:rgba(20,30,50,.08); --line-2:rgba(20,30,50,.15);
+  --txt:#141B2E; --txt-2:#5A6478; --txt-3:#9AA3B2;
+  --acid:#1F7A43; --acid-d:#176235; --acid-soft:rgba(31,122,67,.10);
+  --green:#16A34A; --red:#DC2626; --gold:#D97706;
+  --shadow:0 16px 40px -18px rgba(20,40,25,.18);
+}
+/* ===== TEMA OSCURO — azul elegante, no negro puro ===== */
+[data-theme="dark"]{
+  --bg:#0E1320; --surface:#141A28; --card:#171E2E; --card-2:#1F2738;
+  --line:rgba(255,255,255,.07); --line-2:rgba(255,255,255,.14);
+  --txt:#EEF1F6; --txt-2:#9BA5B8; --txt-3:#5E6A80;
+  --acid:#2BA45C; --acid-d:#43C57D; --acid-soft:rgba(43,164,92,.18);
+  --green:#22C55E; --red:#EF4444; --gold:#F59E0B;
+  --shadow:0 20px 50px -20px rgba(0,0,0,.6);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:'Inter',sans-serif;color:var(--txt);min-height:100vh;background:var(--bg);transition:background .3s,color .3s}
+.phone{width:100%;min-height:100vh;background:var(--bg);position:relative;display:flex;flex-direction:column;transition:background .3s}
+.screen-wrap{flex:1;position:relative;min-height:100vh}
+.screen{display:none;padding:0 0 100px;animation:fade .35s ease}
+.screen.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.screen.noTab{padding-bottom:24px}
+
+/* Top bar */
+.top{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 16px}
+.brand{font-family:'Archivo',sans-serif;font-weight:900;font-size:26px;letter-spacing:-1px;color:var(--txt);display:flex;align-items:center}
+.brand .k{color:var(--acid)}
+.top-actions{display:flex;gap:10px;align-items:center}
+.iconbtn{width:42px;height:42px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--txt-2);cursor:pointer;position:relative;transition:background .3s,border .3s}
+.iconbtn .dot{position:absolute;top:9px;right:10px;width:8px;height:8px;background:var(--acid);border-radius:50%;border:2px solid var(--card)}
+.iconbtn.avatar{background:var(--acid);color:#FFFFFF;font-family:'Archivo',sans-serif;font-weight:800;font-size:14px;border:none}
+
+/* Big rank hero (Strava-style stat) */
+.bighero{padding:8px 20px 28px;text-align:center}
+.bighero .label{font-size:12px;font-weight:600;color:var(--txt-3);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px}
+.bighero .bigrank{font-family:'Archivo',sans-serif;font-weight:900;font-size:92px;line-height:.85;letter-spacing:-4px;color:var(--txt);display:flex;align-items:flex-start;justify-content:center}
+.bighero .bigrank .hash{font-size:44px;color:var(--acid);margin-top:8px;margin-right:2px}
+.bighero .subrank{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px}
+.bighero .subrank .pts{font-family:'Archivo',sans-serif;font-weight:700;font-size:16px;color:var(--txt)}
+.bighero .subrank .chg{font-size:13px;font-weight:700;color:var(--acid);background:var(--acid-soft);padding:3px 10px;border-radius:20px}
+.bighero .metarow{display:flex;justify-content:center;gap:0;margin-top:24px;background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.bighero .metarow .mi{flex:1;padding:14px 8px;border-right:1px solid var(--line)}
+.bighero .metarow .mi:last-child{border:none}
+.bighero .metarow .mi .v{font-family:'Archivo',sans-serif;font-weight:800;font-size:20px;color:var(--txt)}
+.bighero .metarow .mi .v.acid{color:var(--acid)}
+.bighero .metarow .mi .l{font-size:11px;color:var(--txt-3);text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+
+/* Section header */
+.sh{display:flex;align-items:center;justify-content:space-between;padding:8px 20px 14px}
+.sh h2{font-family:'Archivo',sans-serif;font-weight:800;font-size:15px;letter-spacing:.3px;text-transform:uppercase;color:var(--txt);letter-spacing:1px}
+.sh a{font-size:13px;color:var(--acid);font-weight:600;cursor:pointer}
+
+/* Primary CTA - find match */
+.cta{margin:0 20px 14px;background:var(--acid);border-radius:20px;padding:20px;cursor:pointer;display:flex;align-items:center;gap:16px;transition:transform .15s}
+.cta:active{transform:scale(.98)}
+.cta .cta-ic{width:48px;height:48px;border-radius:14px;background:rgba(10,14,10,.12);display:flex;align-items:center;justify-content:center;font-size:26px;color:#FFFFFF;flex-shrink:0}
+.cta .cta-tx{flex:1}
+.cta .cta-tx b{font-family:'Archivo',sans-serif;font-weight:800;font-size:17px;color:#FFFFFF;display:block;letter-spacing:-.2px}
+.cta .cta-tx small{font-size:13px;color:rgba(10,14,10,.65);font-weight:500}
+.cta .cta-ar{color:#FFFFFF;font-size:22px}
+
+/* Next match (compact) */
+.next{margin:0 20px 24px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px 18px;cursor:pointer;transition:transform .15s}
+.next:active{transform:scale(.99)}
+.next .nt{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.next .nt .tag{font-family:'Archivo',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--acid);background:var(--acid-soft);padding:4px 10px;border-radius:6px}
+.next .nt .when{font-size:12px;color:var(--txt-2);font-weight:600}
+.next .nrow{display:flex;align-items:center;gap:12px}
+.next .np{display:flex;align-items:center;gap:10px;flex:1}
+.next .np .av{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:'Archivo',sans-serif;font-weight:700;font-size:13px}
+.next .np .nm{font-size:13px;font-weight:600;color:var(--txt)}
+.next .vs{font-family:'Archivo',sans-serif;font-weight:800;font-size:13px;color:var(--txt-3)}
+.next .nloc{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--txt-2);display:flex;align-items:center;gap:7px}
+.next .nloc i{color:var(--acid)}
+
+/* Avatars */
+.av,.pa{font-family:'Archivo',sans-serif;font-weight:700}
+.c1{background:rgba(31,164,99,.18);color:#3BC489}
+.c2{background:rgba(31,122,67,.16);color:var(--acid-d)}
+.c3{background:rgba(229,182,71,.18);color:#E5B647}
+.c4{background:rgba(232,74,74,.16);color:#E84A4A}
+.c5{background:rgba(120,140,255,.18);color:#8B9BFF}
+
+/* Player row (clean list) */
+.plist{padding:0 20px}
+.prow{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.prow:last-child{border:none}
+.prow .pa{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;position:relative}
+.prow .pa .rel{position:absolute;bottom:-3px;right:-3px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;border:2px solid var(--bg)}
+.rel.g{background:var(--green);color:#fff}.rel.w{background:var(--gold);color:#fff}.rel.b{background:var(--red);color:#fff}
+.prow .pinf{flex:1;min-width:0}
+.prow .pinf .nm{font-weight:600;font-size:15px;color:var(--txt);display:flex;align-items:center;gap:7px}
+.prow .pinf .nm .vf{color:#3B9DD8;font-size:14px}
+.prow .pinf .mt{font-size:12.5px;color:var(--txt-2);margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.prow .pinf .mt .lv{color:var(--acid-d);font-weight:600}
+.prow .pinf .mt i{font-size:12px;opacity:.7}
+.prow .pbtn{background:var(--acid);color:#FFFFFF;font-family:'Archivo',sans-serif;font-weight:700;font-size:13px;border:none;border-radius:11px;padding:9px 16px;cursor:pointer;flex-shrink:0;transition:transform .12s}
+.prow .pbtn:active{transform:scale(.93)}
+.prow .pbtn.gh{background:transparent;border:1px solid var(--line-2);color:var(--txt-2)}
+
+/* Segmented control */
+.seg{display:flex;margin:0 20px 18px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px}
+.seg button{flex:1;border:none;background:transparent;font-family:'Archivo',sans-serif;font-weight:700;font-size:13px;color:var(--txt-2);padding:10px;border-radius:10px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.seg button.on{background:var(--acid);color:#FFFFFF}
+
+/* Chips */
+.chips{display:flex;gap:8px;padding:0 20px 18px;overflow-x:auto}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;font-size:13px;font-weight:600;padding:8px 14px;border-radius:20px;background:var(--card);border:1px solid var(--line);color:var(--txt-2);cursor:pointer;transition:all .2s;white-space:nowrap}
+.chip.on{background:var(--txt);color:var(--bg);border-color:var(--txt)}
+
+/* Page title */
+.ptitle{padding:20px 20px 8px}
+.ptitle h1{font-family:'Archivo',sans-serif;font-weight:900;font-size:28px;letter-spacing:-1px;color:var(--txt);display:flex;align-items:center;gap:12px}
+.ptitle p{color:var(--txt-2);font-size:14px;margin-top:4px}
+.backic{font-size:24px;color:var(--txt-2);cursor:pointer}
+
+/* Ranking */
+.podium{display:flex;justify-content:center;align-items:flex-end;gap:8px;padding:14px 20px 26px}
+.pod{display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer}
+.pod .pp{border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:'Archivo',sans-serif;font-weight:800;border:2px solid}
+.pod.r1 .pp{width:72px;height:72px;font-size:22px;border-color:var(--gold)}
+.pod.r2 .pp{width:58px;height:58px;font-size:17px;border-color:#A8B0A0}
+.pod.r3 .pp{width:58px;height:58px;font-size:17px;border-color:#C8804B}
+.pod .pm{font-family:'Archivo',sans-serif;font-weight:900;font-size:15px}
+.pod.r1 .pm{color:var(--gold)}.pod.r2 .pm{color:#A8B0A0}.pod.r3 .pm{color:#C8804B}
+.pod .pn{font-size:12px;font-weight:600;color:var(--txt)}
+.pod .px{font-size:11px;color:var(--txt-3);font-family:'Archivo',sans-serif;font-weight:700}
+.rlist{padding:0 20px}
+.rr{display:flex;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.rr.me{background:var(--acid-soft);margin:0 -20px;padding:13px 20px;border-bottom:1px solid var(--line)}
+.rr .rn{font-family:'Archivo',sans-serif;font-weight:800;font-size:16px;width:26px;color:var(--txt-3);text-align:center}
+.rr.me .rn{color:var(--acid-d)}
+.rr .ra{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:'Archivo',sans-serif;font-weight:700;font-size:13px;flex-shrink:0}
+.rr .rnm{flex:1;font-weight:600;font-size:14.5px;color:var(--txt)}
+.rr .rnm small{display:block;font-weight:400;font-size:11.5px;color:var(--txt-3);margin-top:1px}
+.rr .rp{font-family:'Archivo',sans-serif;font-weight:700;font-size:15px;color:var(--txt-2);text-align:right}
+.rr.me .rp{color:var(--acid-d)}
+.rr .rd{font-size:11px;font-weight:700;text-align:right}
+.rr .rd.u{color:var(--green)}.rr .rd.d{color:var(--red)}
+
+/* VS result entry */
+.vsbox{margin:18px 20px;display:flex;align-items:stretch;gap:10px}
+.vsbox .sd{flex:1;background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:18px 10px;text-align:center;cursor:pointer;transition:all .2s}
+.vsbox .sd.w{border-color:var(--acid);background:var(--acid-soft)}
+.vsbox .sd .pa{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:16px}
+.vsbox .sd .nm{font-weight:600;font-size:14px;color:var(--txt)}
+.vsbox .sd .tg{font-size:11px;color:var(--txt-3);margin-top:3px}
+.vsbox .sd .wt{margin-top:8px;font-family:'Archivo',sans-serif;font-weight:800;font-size:10px;color:var(--acid-d);text-transform:uppercase;letter-spacing:.5px;opacity:0}
+.vsbox .sd.w .wt{opacity:1}
+.vsbox .vm{display:flex;align-items:center;font-family:'Archivo',sans-serif;font-weight:900;font-size:16px;color:var(--txt-3)}
+.slabel{padding:0 20px;font-size:11px;font-weight:700;color:var(--txt-3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px}
+.sets{padding:0 20px;display:flex;flex-direction:column;gap:10px}
+.setr{display:flex;align-items:center;gap:14px}
+.setr .sl{font-size:13px;color:var(--txt-2);width:44px;font-weight:600}
+.sbox{flex:1;display:flex;align-items:center;justify-content:center;gap:20px;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:11px}
+.sbox .sv{font-family:'Archivo',sans-serif;font-weight:800;font-size:22px;width:28px;text-align:center;color:var(--txt)}
+.sbox .sd2{color:var(--txt-3)}
+.btn{margin:24px 20px 0;width:calc(100% - 40px);background:var(--acid);color:#FFFFFF;font-family:'Archivo',sans-serif;font-weight:800;font-size:16px;border:none;border-radius:16px;padding:17px;cursor:pointer;transition:transform .12s}
+.btn:active{transform:scale(.97)}
+.btn.gh{background:transparent;border:1.5px solid var(--line-2);color:var(--txt)}
+.hint{padding:14px 26px 0;font-size:12px;color:var(--txt-3);text-align:center;line-height:1.5}
+
+/* Profile */
+.ph{text-align:center;padding:8px 20px 0}
+.ph .pa{width:90px;height:90px;border-radius:26px;display:flex;align-items:center;justify-content:center;font-family:'Archivo',sans-serif;font-weight:900;font-size:32px;margin:0 auto 16px}
+.ph .pn{font-family:'Archivo',sans-serif;font-weight:900;font-size:25px;letter-spacing:-.5px;color:var(--txt)}
+.ph .pl{color:var(--txt-2);font-size:13.5px;margin-top:5px;display:flex;align-items:center;justify-content:center;gap:5px}
+.ph .badges{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.ph .pb{font-family:'Archivo',sans-serif;font-weight:700;font-size:11px;padding:6px 13px;border-radius:20px;letter-spacing:.3px}
+.ph .pb.lv{background:var(--acid-soft);color:var(--acid-d)}
+.ph .pb.cl{background:rgba(59,157,216,.14);color:#3B9DDD;display:inline-flex;align-items:center;gap:5px}
+.pstats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin:24px 20px;background:var(--line);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.pstat{background:var(--card);padding:18px 8px;text-align:center}
+.pstat .v{font-family:'Archivo',sans-serif;font-weight:900;font-size:24px;color:var(--txt)}
+.pstat .v.acid{color:var(--acid)}
+.pstat .l{font-size:10.5px;color:var(--txt-3);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+
+/* Reliability block */
+.relb{margin:0 20px 20px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
+.relb .rh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.relb .rh .t{display:flex;align-items:center;gap:8px;font-family:'Archivo',sans-serif;font-weight:700;font-size:14px;color:var(--txt)}
+.relb .rh .t i{color:var(--green)}
+.relb .rh .sc{font-family:'Archivo',sans-serif;font-weight:800;font-size:18px;color:var(--green)}
+.relb .rh .sc.b{color:var(--red)}
+.relbar{height:7px;background:var(--card-2);border-radius:5px;overflow:hidden;margin-bottom:16px}
+.relbar span{display:block;height:100%;background:var(--green);border-radius:5px}
+.relbar span.b{background:var(--red)}
+.relbadges{display:flex;flex-wrap:wrap;gap:8px}
+.rbg{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:7px 12px;border-radius:10px;background:var(--card-2);color:var(--txt-2)}
+.rbg i{font-size:14px;color:var(--green)}
+.rbg.neg{background:rgba(232,74,74,.1);color:var(--red)}
+.rbg.neg i{color:var(--red)}
+.warnb{margin:0 20px 16px;background:rgba(229,182,71,.1);border:1px solid rgba(229,182,71,.3);border-radius:14px;padding:13px 16px;display:flex;gap:11px;align-items:flex-start}
+.warnb i{color:var(--gold);font-size:18px;flex-shrink:0;margin-top:1px}
+.warnb p{font-size:12.5px;color:var(--gold);line-height:1.45}
+
+/* H2H */
+.h2h{margin:0 20px 20px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
+.h2h .ht{font-family:'Archivo',sans-serif;font-weight:700;font-size:12px;color:var(--txt-3);text-align:center;margin-bottom:16px;text-transform:uppercase;letter-spacing:1px}
+.h2h .hs{display:flex;align-items:center;justify-content:center;gap:24px}
+.h2h .hsd{text-align:center;flex:1}
+.h2h .hsd .pa{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:14px}
+.h2h .hsd .w{font-family:'Archivo',sans-serif;font-weight:900;font-size:32px;line-height:1}
+.h2h .hsd.win .w{color:var(--acid)}
+.h2h .hsd.lose .w{color:var(--txt-3)}
+.h2h .hsd .n{font-size:12px;color:var(--txt-2);margin-top:4px}
+.h2h .hv{font-family:'Archivo',sans-serif;font-weight:900;font-size:14px;color:var(--txt-3)}
+.h2h .hh{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);display:flex;justify-content:center;gap:6px}
+.h2h .hd{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:'Archivo',sans-serif;font-weight:800;font-size:11px}
+.h2h .hd.w{background:var(--acid-soft);color:var(--acid-d)}
+.h2h .hd.l{background:rgba(232,74,74,.14);color:var(--red)}
+
+/* Achievements */
+.achg{padding:0 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.ach{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 8px;text-align:center}
+.ach.lk{opacity:.4}
+.ach .ai{width:46px;height:46px;border-radius:14px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:23px}
+.ach .ai.g{background:rgba(229,182,71,.16);color:var(--gold)}
+.ach .ai.gr{background:rgba(31,164,99,.16);color:var(--green)}
+.ach .ai.a{background:var(--acid-soft);color:var(--acid-d)}
+.ach .ai.x{background:var(--card-2);color:var(--txt-3)}
+.ach .an{font-size:11px;font-weight:600;color:var(--txt);line-height:1.25}
+.ach .as{font-size:10px;color:var(--txt-3);margin-top:2px}
+
+/* Premium */
+.pro{margin:0 20px 20px;background:linear-gradient(135deg,#16200F,#243018);border:1px solid var(--line-2);border-radius:20px;padding:22px;position:relative;overflow:hidden}
+[data-theme="light"] .pro{background:linear-gradient(135deg,#16200F,#2A3A1C)}
+.pro::after{content:"";position:absolute;right:-30px;bottom:-30px;width:120px;height:120px;border:2px solid var(--acid-soft);border-radius:50%}
+.pro .pt{display:inline-flex;align-items:center;gap:6px;background:var(--acid-soft);color:var(--acid);font-family:'Archivo',sans-serif;font-weight:700;font-size:11px;padding:5px 11px;border-radius:7px;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+.pro h3{font-family:'Archivo',sans-serif;font-weight:800;font-size:19px;margin-bottom:6px;color:#F3F6F0}
+.pro p{font-size:13px;color:rgba(243,246,240,.7);line-height:1.5;margin-bottom:16px}
+.pro .pbtn{background:var(--acid);color:#FFFFFF;border:none;font-family:'Archivo',sans-serif;font-weight:800;font-size:14px;padding:12px 22px;border-radius:12px;cursor:pointer}
+.sbcards{padding:0 20px;display:flex;flex-direction:column;gap:12px}
+.sbc{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
+.sbc .sbh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.sbc .sbh h4{font-family:'Archivo',sans-serif;font-weight:700;font-size:14px;color:var(--txt)}
+.sbc .sbh i{color:var(--acid-d);font-size:18px}
+.bars{display:flex;align-items:flex-end;gap:8px;height:90px}
+.bars .bw{flex:1;display:flex;flex-direction:column}
+.bars .br{flex:1;background:var(--card-2);border-radius:6px 6px 0 0;display:flex;align-items:flex-end;overflow:hidden}
+.bars .br span{display:block;width:100%;background:var(--acid);border-radius:6px 6px 0 0}
+.bars .bl{font-size:10px;color:var(--txt-3);text-align:center;margin-top:6px}
+.donut{display:flex;align-items:center;gap:20px}
+.donut .rg{width:88px;height:88px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.donut .rg .in{width:62px;height:62px;border-radius:50%;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.donut .rg .in b{font-family:'Archivo',sans-serif;font-weight:800;font-size:22px;color:var(--txt)}
+.donut .rg .in small{font-size:10px;color:var(--txt-3)}
+.donut .dl .dr{display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;color:var(--txt-2)}
+.donut .dl .dr .sw{width:12px;height:12px;border-radius:4px}
+.surf{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.surf:last-child{border:none}
+.surf .sn{color:var(--txt);font-weight:500}
+.surf .sv{font-family:'Archivo',sans-serif;font-weight:700;color:var(--acid-d)}
+
+/* Champion */
+.champ{margin:0 20px 24px;background:linear-gradient(135deg,#1A1505,#3D3010);border:1px solid rgba(229,182,71,.2);border-radius:20px;padding:18px;position:relative;overflow:hidden;cursor:pointer}
+[data-theme="light"] .champ{background:linear-gradient(135deg,#FBF3DC,#F5E8C0);border-color:rgba(201,154,46,.3)}
+.champ .cg{position:absolute;top:-40px;right:-20px;width:150px;height:150px;background:radial-gradient(circle,rgba(229,182,71,.3),transparent 70%)}
+.champ .cl{position:relative;font-family:'Archivo',sans-serif;font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);display:flex;align-items:center;gap:7px;margin-bottom:14px}
+.champ .cb{position:relative;display:flex;align-items:center;gap:14px}
+.champ .cp{width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,var(--gold),#E0B85A);display:flex;align-items:center;justify-content:center;font-family:'Archivo',sans-serif;font-weight:900;font-size:18px;color:#1A1505;flex-shrink:0}
+.champ .cn{font-family:'Archivo',sans-serif;font-weight:800;font-size:17px;color:var(--txt)}
+.champ .cs{font-size:12.5px;color:var(--txt-2);margin-top:2px}
+.champ .car{color:var(--txt-3);font-size:22px}
+
+/* Status toggle */
+.stog{margin:0 20px 14px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px}
+.stog .stx{flex:1}
+.stog .stx b{font-family:'Archivo',sans-serif;font-weight:700;font-size:14px;color:var(--txt);display:flex;align-items:center;gap:7px}
+.stog .stx b .ld{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(31,164,99,.5)}70%{box-shadow:0 0 0 8px rgba(31,164,99,0)}100%{box-shadow:0 0 0 0 rgba(31,164,99,0)}}
+.stog .stx small{font-size:12px;color:var(--txt-3)}
+.tg{width:46px;height:27px;border-radius:16px;background:var(--green);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.tg.off{background:var(--card-2)}
+.tg::after{content:"";position:absolute;top:3px;right:3px;width:21px;height:21px;border-radius:50%;background:#fff;transition:all .2s;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+.tg.off::after{right:22px}
+
+/* Quick access */
+.qa{display:flex;gap:12px;padding:0 20px;margin-bottom:24px}
+.qac{flex:1;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;cursor:pointer;transition:transform .15s}
+.qac:active{transform:scale(.97)}
+.qac .qi{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:10px;background:var(--acid-soft);color:var(--acid-d)}
+.qac b{font-family:'Archivo',sans-serif;font-weight:700;font-size:14px;color:var(--txt);display:block}
+.qac small{font-size:11.5px;color:var(--txt-3)}
+
+/* Doubles */
+.dbl{display:flex;align-items:center;gap:13px;padding:14px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.dbl .dp{display:flex}
+.dbl .dp .pa{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.dbl .dp .pa:last-child{margin-left:-12px;border:2px solid var(--bg)}
+.dbl .di{flex:1}
+.dbl .di .dn{font-weight:600;font-size:14.5px;color:var(--txt)}
+.dbl .di .ds{font-size:12px;color:var(--txt-2);margin-top:2px}
+.dbl .di .dlv{font-size:11px;color:var(--acid-d);font-weight:600;margin-top:2px}
+
+/* Tournaments */
+.tc{background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden;margin:0 20px 14px;cursor:pointer}
+.tc .tb{height:80px;background:linear-gradient(135deg,var(--acid),var(--acid-d));position:relative;display:flex;align-items:flex-end;padding:14px 16px}
+.tc .tb.g{background:linear-gradient(135deg,#1FA463,#2BC47A)}
+.tc .tb.gl{background:linear-gradient(135deg,#E5B647,#F0C967)}
+.tc .tb::after{content:"";position:absolute;right:-20px;top:-20px;width:90px;height:90px;border:2px solid rgba(10,14,10,.12);border-radius:50%}
+.tc .tb .ts{position:absolute;top:12px;right:12px;background:rgba(10,14,10,.18);font-size:10px;font-weight:700;padding:4px 10px;border-radius:7px;font-family:'Archivo',sans-serif;color:#FFFFFF}
+.tc .tb h3{font-family:'Archivo',sans-serif;font-weight:800;font-size:17px;z-index:1;color:#FFFFFF}
+.tc .tbd{padding:14px 16px}
+.tc .tr{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--txt-2);margin-bottom:7px}
+.tc .tr:last-child{margin-bottom:0}
+.tc .tr i{color:var(--acid-d);font-size:16px;width:18px}
+.tc .tf{margin-top:12px;height:6px;background:var(--card-2);border-radius:4px;overflow:hidden}
+.tc .tf span{display:block;height:100%;background:var(--acid);border-radius:4px}
+.tc .tft{font-size:11px;color:var(--txt-3);margin-top:5px}
+
+/* Map */
+.mapb{margin:0 20px 18px;border-radius:20px;overflow:hidden;border:1px solid var(--line);position:relative;height:230px;background:linear-gradient(135deg,#1A2116,#243018)}
+[data-theme="light"] .mapb{background:linear-gradient(135deg,#E2E8D8,#D5DEC6)}
+.mapb .mg{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:28px 28px}
+[data-theme="light"] .mapb .mg{background-image:linear-gradient(rgba(20,40,10,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(20,40,10,.05) 1px,transparent 1px)}
+.mapb .rd{position:absolute;background:rgba(255,255,255,.08)}
+[data-theme="light"] .mapb .rd{background:rgba(255,255,255,.6)}
+.mp{position:absolute;transform:translate(-50%,-100%);cursor:pointer;text-align:center;z-index:2}
+.mp .md{width:32px;height:32px;border-radius:50% 50% 50% 0;background:var(--acid);transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px -2px rgba(31,122,67,.45);border:2px solid var(--bg)}
+.mp .md i{transform:rotate(45deg);color:#FFFFFF;font-size:15px}
+.mp .ml{background:var(--card);font-size:10px;font-weight:700;padding:2px 7px;border-radius:7px;margin-top:4px;white-space:nowrap;color:var(--txt);display:inline-block;border:1px solid var(--line)}
+.cll{padding:0 20px}
+.clc{display:flex;align-items:center;gap:13px;padding:14px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.clc:last-child{border:none}
+.clc .ci{width:44px;height:44px;border-radius:13px;background:var(--acid-soft);color:var(--acid-d);display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0}
+.clc .cin{flex:1}
+.clc .cin b{font-size:14.5px;font-weight:600;color:var(--txt);display:block}
+.clc .cin small{font-size:12px;color:var(--txt-2)}
+.clc .cpl{text-align:center}
+.clc .cpl .cnum{font-family:'Archivo',sans-serif;font-weight:800;font-size:17px;color:var(--acid-d)}
+.clc .cpl .clb{font-size:9px;color:var(--txt-3);text-transform:uppercase}
+
+/* Share */
+.shc{margin:0 20px 18px;background:linear-gradient(135deg,var(--acid),var(--acid-d));border-radius:20px;padding:24px 20px;text-align:center;position:relative;overflow:hidden}
+.shc::after{content:"";position:absolute;left:-30px;bottom:-30px;width:120px;height:120px;border:2px solid rgba(10,14,10,.12);border-radius:50%}
+.shc .sl{font-family:'Archivo',sans-serif;font-weight:900;font-size:20px;letter-spacing:-1px;margin-bottom:14px;color:#FFFFFF;position:relative}
+.shc .sbig{font-family:'Archivo',sans-serif;font-weight:900;font-size:38px;line-height:1;color:#FFFFFF;position:relative}
+.shc .ss{font-size:14px;margin-top:8px;color:rgba(10,14,10,.75);position:relative;font-weight:600}
+.shb{display:flex;gap:10px;padding:0 20px}
+.shbt{flex:1;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center;cursor:pointer;font-size:12px;font-weight:600;color:var(--txt-2)}
+.shbt i{display:block;font-size:22px;margin-bottom:6px}
+
+/* Onboarding */
+.ob{min-height:100vh;display:flex;flex-direction:column;padding:0 28px;text-align:center;justify-content:center}
+.ob .bl{font-family:'Archivo',sans-serif;font-weight:900;font-size:60px;letter-spacing:-3px;margin-bottom:6px;color:var(--txt)}
+.ob .bl .k{color:var(--acid)}
+.ob .tag{color:var(--txt-2);font-size:16px;line-height:1.5;margin-bottom:40px;font-weight:500}
+.ob .step{font-size:12px;color:var(--txt-3);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:24px}
+.lvc{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:18px 20px;text-align:left;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:16px;margin-bottom:12px}
+.lvc.sel{border-color:var(--acid);background:var(--acid-soft)}
+.lvc .li{width:44px;height:44px;border-radius:13px;background:var(--card-2);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--acid-d);flex-shrink:0}
+.lvc.sel .li{background:var(--acid-soft)}
+.lvc .lt b{font-family:'Archivo',sans-serif;font-weight:700;font-size:16px;display:block;color:var(--txt)}
+.lvc .lt small{color:var(--txt-3);font-size:12.5px}
+
+/* Chat */
+.chh{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.chh .cpa{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Archivo',sans-serif;font-weight:700;font-size:14px}
+.chh .ci b{font-size:15px;font-weight:600;display:block;color:var(--txt)}
+.chh .ci small{font-size:12px;color:var(--green)}
+.chbody{padding:18px;display:flex;flex-direction:column;gap:12px}
+.dsep{text-align:center;font-size:11px;color:var(--txt-3);margin:6px 0;text-transform:uppercase;letter-spacing:1px}
+.bub{max-width:75%;padding:11px 15px;border-radius:18px;font-size:14px;line-height:1.4}
+.bub.them{background:var(--card);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:5px;color:var(--txt)}
+.bub.me{background:var(--acid);color:#FFFFFF;align-self:flex-end;border-bottom-right-radius:5px;font-weight:500}
+.mcard{align-self:stretch;background:var(--card-2);border:1px solid var(--acid-soft);border-radius:18px;padding:16px;margin:4px 0}
+.mcard .mcl{font-size:11px;color:var(--acid-d);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.mcard .mcr{display:flex;align-items:center;gap:10px;font-size:14px;margin-bottom:7px;color:var(--txt)}
+.mcard .mcr i{color:var(--acid-d);font-size:17px;width:20px}
+.chin{display:flex;gap:10px;padding:14px 18px;border-top:1px solid var(--line);align-items:center}
+.chin input{flex:1;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;color:var(--txt);font-size:14px;font-family:inherit;outline:none}
+.chin .snd{width:44px;height:44px;border-radius:13px;background:var(--acid);border:none;color:#FFFFFF;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+
+/* Reto banner */
+.csb{margin:0 20px 20px;background:linear-gradient(135deg,var(--acid),var(--acid-d));border-radius:20px;padding:26px 20px;text-align:center;position:relative;overflow:hidden}
+.csb i.bi{font-size:42px;margin-bottom:10px;color:#FFFFFF}
+.csb h2{font-family:'Archivo',sans-serif;font-weight:800;font-size:22px;color:#FFFFFF}
+.csb p{color:rgba(10,14,10,.7);font-size:13.5px;margin-top:6px}
+.csd{margin:0 20px 18px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:6px 18px}
+.csd .dr{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+.csd .dr:last-child{border:none}
+.csd .dr i{font-size:20px;color:var(--acid-d);width:24px}
+.csd .dr .dk{font-size:12px;color:var(--txt-3);margin-bottom:2px}
+.csd .dr .dv{font-size:15px;font-weight:600;color:var(--txt)}
+
+/* Notif */
+.nfl{padding:0 20px}
+.nf{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+.nf .nfi{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.nf .nfi.w{background:rgba(31,164,99,.16);color:var(--green)}
+.nf .nfi.c{background:var(--acid-soft);color:var(--acid-d)}
+.nf .nfi.r{background:rgba(229,182,71,.18);color:var(--gold)}
+.nf .nfi.m{background:var(--card-2);color:var(--txt-2)}
+.nf .nft{flex:1}
+.nf .nft p{font-size:14px;color:var(--txt);line-height:1.4}
+.nf .nft p b{font-weight:600}
+.nf .nft .tm{font-size:11.5px;color:var(--txt-3);margin-top:3px}
+.nf.un{position:relative}
+.nf.un::before{content:"";position:absolute;left:-12px;top:24px;width:7px;height:7px;background:var(--acid);border-radius:50%}
+
+/* Tab bar */
+.tabs{position:fixed;bottom:0;left:0;right:0;height:82px;background:var(--surface);border-top:1px solid var(--line);display:flex;align-items:flex-start;padding-top:12px;z-index:40;max-width:480px;margin:0 auto;transition:background .3s}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--txt-3);cursor:pointer;font-size:10px;font-weight:600;transition:color .2s}
+.tab i{font-size:22px}
+.tab.on{color:var(--acid)}
+.tab.mid{margin-top:-8px}
+.tab.mid .mi{width:50px;height:50px;border-radius:16px;background:var(--acid);display:flex;align-items:center;justify-content:center;color:#FFFFFF;box-shadow:0 8px 20px -4px rgba(31,122,67,.4)}
+.tab.mid .mi i{font-size:26px}
+.tab.mid span{margin-top:2px}
+
+@media (min-width:600px){.phone{max-width:480px;margin:0 auto;box-shadow:0 0 80px rgba(0,0,0,.4)}}
+
+/* ===== ANIMACIONES ===== */
+/* Splash de bienvenida */
+#splash{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .35s ease,visibility .35s}
+#splash.hide{opacity:0;visibility:hidden}
+#splash .sp-logo{font-family:'Archivo',sans-serif;font-weight:900;font-size:72px;letter-spacing:-4px;color:var(--txt);opacity:0;transform:scale(.8);animation:spLogo .5s .05s cubic-bezier(.2,.8,.2,1) forwards}
+#splash .sp-logo .k{color:var(--acid);display:inline-block;opacity:0;transform:translateY(20px) rotate(-15deg);animation:spBall .45s .3s cubic-bezier(.3,1.4,.5,1) forwards}
+#splash .sp-tag{font-size:14px;color:var(--txt-3);font-weight:600;letter-spacing:2px;text-transform:uppercase;opacity:0;animation:spTag .4s .55s ease forwards}
+#splash .sp-bar{position:absolute;bottom:80px;width:120px;height:4px;background:var(--card-2);border-radius:4px;overflow:hidden}
+#splash .sp-bar span{display:block;height:100%;width:0;background:var(--acid);border-radius:4px;animation:spBar .8s .15s ease forwards}
+@keyframes spLogo{to{opacity:1;transform:scale(1)}}
+@keyframes spBall{to{opacity:1;transform:translateY(0) rotate(0)}}
+@keyframes spTag{to{opacity:1}}
+@keyframes spBar{to{width:100%}}
+
+/* Entrada de pantalla más elegante */
+.screen.active{animation:scIn .28s cubic-bezier(.2,.7,.2,1)}
+@keyframes scIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* Entrada escalonada de elementos (stagger) */
+.stagger>*{opacity:0;animation:stIn .35s ease forwards}
+.stagger>*:nth-child(1){animation-delay:.05s}
+.stagger>*:nth-child(2){animation-delay:.12s}
+.stagger>*:nth-child(3){animation-delay:.19s}
+.stagger>*:nth-child(4){animation-delay:.26s}
+.stagger>*:nth-child(5){animation-delay:.33s}
+.stagger>*:nth-child(6){animation-delay:.40s}
+.stagger>*:nth-child(7){animation-delay:.47s}
+.stagger>*:nth-child(8){animation-delay:.54s}
+@keyframes stIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* Pulso del CTA para llamar la atención */
+
+@keyframes ctaPulse{0%,100%{box-shadow:0 0 0 0 rgba(31,122,67,0)}50%{box-shadow:0 8px 30px -6px rgba(31,122,67,.4)}}
+
+/* Barras de stats que crecen al entrar */
+.bars.animate .br span{animation:barGrow 1s cubic-bezier(.2,.8,.2,1) forwards;height:0}
+@keyframes barGrow{to{height:var(--h)}}
+
+/* Confeti */
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:998;overflow:hidden;display:none}
+#confetti.show{display:block}
+.cfp{position:absolute;width:10px;height:14px;top:-20px;opacity:0;animation:cfFall 2.4s ease-in forwards}
+@keyframes cfFall{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(110vh) rotate(720deg)}}
+
+/* Toast de puntos ganados */
+#ptoast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.5);z-index:1000;background:var(--card);color:var(--acid-d);font-family:"Archivo",sans-serif;font-weight:900;font-size:30px;padding:22px 36px;border-radius:20px;box-shadow:0 20px 50px -12px rgba(20,40,25,.35);border:1px solid var(--line);opacity:0;pointer-events:none;text-align:center}
+#ptoast.show{animation:ptShow 1.4s ease forwards}
+#ptoast .ptsub{font-size:14px;font-weight:700;margin-top:4px;letter-spacing:.5px}
+@keyframes ptShow{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}25%{transform:translate(-50%,-50%) scale(1)}75%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-60%) scale(.95)}}
+
+/* Donut que se rellena */
+@keyframes donutFill{from{background:conic-gradient(var(--acid) 0% 0%, var(--card-2) 0% 100%)}}
+
+/* Pequeño bounce al pulsar retar */
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+
+/* Respeta a quien prefiere menos movimiento */
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}#splash{display:none}}
+
+/* ===== MICRO-ANIMACIONES EN CADA ACCIÓN ===== */
+/* Feedback de pulsación universal: todo lo clicable se hunde un poco */
+.prow,.next,.qac,.tc,.clc,.dbl,.champ,.rr,.pod,.lvc,.shbt,.iconbtn,.chip,.seg button,.sd,.stog .tg,.nf{
+  transition:transform .12s cubic-bezier(.3,.7,.3,1),background .2s,border-color .2s,box-shadow .2s,color .2s;
+}
+.prow:active,.next:active,.qac:active,.tc:active,.clc:active,.dbl:active,.champ:active,.rr:active,.pod:active,.lvc:active,.shbt:active,.nf:active{transform:scale(.97)}
+.iconbtn:active{transform:scale(.88)}
+.chip:active,.seg button:active{transform:scale(.93)}
+.btn:active,.pbtn:active,.pbtn2:active,.cta:active,.csb:active{transform:scale(.96)}
+
+/* Botones con efecto "pop" al activarse */
+.pop-anim{animation:popB .4s cubic-bezier(.3,1.4,.5,1)}
+@keyframes popB{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+/* Ripple (onda) al pulsar botones principales */
+.btn,.pbtn,.cta{position:relative;overflow:hidden}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.4);transform:scale(0);animation:rip .6s ease-out;pointer-events:none}
+@keyframes rip{to{transform:scale(3);opacity:0}}
+
+/* Chips: check al seleccionar */
+.chip{position:relative}
+.chip.on{animation:chipOn .3s ease}
+@keyframes chipOn{0%{transform:scale(.93)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+
+/* Toggle de disponible: salto al cambiar */
+.tg.justchanged{animation:tgPop .35s cubic-bezier(.3,1.4,.5,1)}
+@keyframes tgPop{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+/* Selección de ganador en resultado: latido */
+.sd.w{animation:winPick .4s cubic-bezier(.3,1.3,.5,1)}
+@keyframes winPick{0%{transform:scale(1)}45%{transform:scale(1.05)}100%{transform:scale(1)}}
+
+/* Tema: giro del icono al cambiar */
+#themebtn.spin i{animation:spin .5s ease}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+/* Avatar superior: latido al entrar */
+
+@keyframes avPulse{0%{transform:scale(1)}40%{transform:scale(1.1)}100%{transform:scale(1)}}
+
+/* Mensaje de chat que entra */
+.bub.justsent{animation:bubIn .35s cubic-bezier(.3,.9,.3,1)}
+@keyframes bubIn{from{opacity:0;transform:translateY(10px) scale(.95)}to{opacity:1;transform:none}}
+
+/* Pestaña activa: icono salta */
+.tab.on i{animation:tabHop .35s cubic-bezier(.3,1.3,.5,1)}
+@keyframes tabHop{0%{transform:translateY(0)}40%{transform:translateY(-4px)}100%{transform:translateY(0)}}
+
+/* Mini toast genérico (para acciones como inscribirse, invitar) */
+#minitoast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);z-index:1000;background:var(--txt);color:var(--bg);font-weight:600;font-size:14px;padding:13px 22px;border-radius:14px;box-shadow:0 10px 30px -8px rgba(0,0,0,.4);opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px}
+#minitoast.show{animation:mtShow 2s ease}
+#minitoast i{color:var(--acid)}
+@keyframes mtShow{0%{opacity:0;transform:translateX(-50%) translateY(20px)}15%{opacity:1;transform:translateX(-50%) translateY(0)}85%{opacity:1;transform:translateX(-50%) translateY(0)}100%{opacity:0;transform:translateX(-50%) translateY(20px)}}
+/* ===== FLUJO DE REGISTRO ===== */
+#signup{position:fixed;inset:0;z-index:900;background:var(--bg);display:none;flex-direction:column;max-width:480px;margin:0 auto}
+#signup.show{display:flex}
+.su-prog{padding:20px 24px 0;display:flex;gap:6px}
+.su-prog .sb{flex:1;height:4px;background:var(--card-2);border-radius:4px;overflow:hidden}
+.su-prog .sb span{display:block;height:100%;width:0;background:var(--acid);border-radius:4px;transition:width .5s cubic-bezier(.3,.8,.3,1)}
+.su-prog .sb.done span{width:100%}
+.su-step{flex:1;display:none;flex-direction:column;padding:40px 28px 28px;animation:suIn .4s cubic-bezier(.2,.8,.2,1)}
+.su-step.active{display:flex}
+@keyframes suIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+.su-step .su-back{font-size:24px;color:var(--txt-3);cursor:pointer;margin-bottom:20px}
+.su-step h2{font-family:'Archivo',sans-serif;font-weight:900;font-size:30px;letter-spacing:-1px;color:var(--txt);line-height:1.1;margin-bottom:10px}
+.su-step .su-sub{font-size:15px;color:var(--txt-2);margin-bottom:32px;line-height:1.4}
+.su-input{width:100%;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:18px 18px;color:var(--txt);font-size:17px;font-family:inherit;outline:none;font-weight:500;transition:border .2s}
+.su-input:focus{border-color:var(--acid)}
+.su-input::placeholder{color:var(--txt-3)}
+.su-grid{display:flex;flex-direction:column;gap:12px}
+.su-opt{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:18px 20px;text-align:left;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:16px}
+.su-opt:active{transform:scale(.98)}
+.su-opt.sel{border-color:var(--acid);background:var(--acid-soft)}
+.su-opt .soi{width:46px;height:46px;border-radius:13px;background:var(--card-2);display:flex;align-items:center;justify-content:center;font-size:23px;color:var(--acid-d);flex-shrink:0;transition:all .2s}
+.su-opt.sel .soi{background:var(--acid);color:#FFFFFF}
+.su-opt .sot b{font-family:'Archivo',sans-serif;font-weight:700;font-size:16px;display:block;color:var(--txt)}
+.su-opt .sot small{color:var(--txt-3);font-size:13px}
+.su-opt .sochk{margin-left:auto;width:24px;height:24px;border-radius:50%;border:2px solid var(--line-2);display:flex;align-items:center;justify-content:center;color:#FFFFFF;flex-shrink:0;transition:all .2s}
+.su-opt.sel .sochk{background:var(--acid);border-color:var(--acid)}
+.su-opt .sochk i{opacity:0;font-size:14px;transition:opacity .2s}
+.su-opt.sel .sochk i{opacity:1}
+.su-spacer{flex:1}
+.su-btn{width:100%;background:var(--acid);color:#FFFFFF;font-family:'Archivo',sans-serif;font-weight:800;font-size:16px;border:none;border-radius:16px;padding:18px;cursor:pointer;transition:transform .12s,opacity .2s;position:relative;overflow:hidden}
+.su-btn:active{transform:scale(.97)}
+.su-btn:disabled{opacity:.4}
+/* Pantalla creando perfil */
+.su-creating{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px;text-align:center}
+.su-creating.active{display:flex}
+.su-spinner{width:64px;height:64px;border-radius:50%;border:4px solid var(--card-2);border-top-color:var(--acid);animation:spin360 .8s linear infinite;margin-bottom:24px}
+@keyframes spin360{to{transform:rotate(360deg)}}
+.su-creating h2{font-family:'Archivo',sans-serif;font-weight:800;font-size:22px;color:var(--txt);margin-bottom:8px}
+.su-creating p{font-size:14px;color:var(--txt-2);transition:opacity .3s}
+.su-check{width:80px;height:80px;border-radius:50%;background:var(--acid);display:none;align-items:center;justify-content:center;margin-bottom:24px;animation:checkPop .5s cubic-bezier(.3,1.4,.5,1)}
+.su-check.show{display:flex}
+.su-check i{font-size:44px;color:#FFFFFF}
+@keyframes checkPop{0%{transform:scale(0)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+/* ===== ELEMENTOS SOCIALES ===== */
+/* Foto de persona (reemplaza iniciales) */
+.photo{background-size:cover;background-position:center;color:transparent!important}
+/* Punto en línea */
+.online{position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;background:var(--green);border-radius:50%;border:2.5px solid var(--bg);z-index:2}
+.online.card{border-color:var(--card)}
+/* Banner de prueba social en home */
+.social-proof{margin:0 20px 22px;display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 18px}
+.social-proof .sp-avs{display:flex}
+.social-proof .sp-avs .spa{width:34px;height:34px;border-radius:50%;background-size:cover;background-position:center;border:2px solid var(--card);margin-left:-10px}
+.social-proof .sp-avs .spa:first-child{margin-left:0}
+.social-proof .sp-tx{flex:1;font-size:13px;color:var(--txt-2);line-height:1.35}
+.social-proof .sp-tx b{color:var(--txt);font-weight:700}
+/* Feed de actividad de la comunidad */
+.feed{padding:0 20px}
+.fitem{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
+.fitem:last-child{border:none}
+.fitem .fav{width:42px;height:42px;border-radius:12px;background-size:cover;background-position:center;flex-shrink:0;position:relative}
+.fitem .ftx{flex:1;font-size:13.5px;color:var(--txt);line-height:1.4}
+.fitem .ftx b{font-weight:600}
+.fitem .ftx .ft{font-size:11.5px;color:var(--txt-3);margin-top:2px}
+.fitem .fbadge{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.fitem .fbadge.win{background:rgba(31,164,99,.15);color:var(--green)}
+.fitem .fbadge.up{background:var(--acid-soft);color:var(--acid-d)}
+.fitem .fbadge.join{background:rgba(139,155,255,.15);color:#8B9BFF}
+/* Estrellas de valoración */
+.stars{display:inline-flex;gap:1px;color:var(--gold);font-size:13px}
+.stars .empty{color:var(--line-2)}
+.ratingline{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--txt-2);margin-top:6px}
+/* Reseñas en perfil */
+.reviews{margin:0 20px 20px}
+.review{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:10px}
+.review .rv-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.review .rv-av{width:34px;height:34px;border-radius:10px;background-size:cover;background-position:center;flex-shrink:0}
+.review .rv-nm{font-size:13px;font-weight:600;color:var(--txt)}
+.review .rv-nm small{display:block;font-weight:400;color:var(--txt-3);font-size:11px}
+.review .rv-tx{font-size:13px;color:var(--txt-2);line-height:1.45}
+/* ===== BANNER Y PANTALLA DE PARTIDO ===== */
+/* Banner "ir al partido" en el home */
+.matchbanner{margin:0 20px 22px;background:linear-gradient(135deg,var(--acid),var(--acid-d));border-radius:20px;padding:18px;cursor:pointer;position:relative;overflow:hidden;box-shadow:0 12px 28px -10px var(--acid-soft)}
+.matchbanner::after{content:"";position:absolute;right:-25px;top:-25px;width:120px;height:120px;border:2px solid rgba(255,255,255,.18);border-radius:50%}
+.matchbanner .mb-top{display:flex;align-items:center;gap:8px;color:#fff;font-family:'Archivo',sans-serif;font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;position:relative}
+.matchbanner .mb-top .live{display:inline-flex;align-items:center;gap:5px}
+.matchbanner .mb-top .live .ld{width:7px;height:7px;border-radius:50%;background:#fff;animation:pulse 1.5s infinite}
+.matchbanner .mb-body{display:flex;align-items:center;gap:14px;position:relative}
+.matchbanner .mb-vs{display:flex;align-items:center;gap:10px;flex:1}
+.matchbanner .mb-av{width:40px;height:40px;border-radius:12px;background-size:cover;background-position:center;border:2px solid rgba(255,255,255,.3)}
+.matchbanner .mb-txt{color:#fff}
+.matchbanner .mb-txt b{font-family:'Archivo',sans-serif;font-weight:800;font-size:16px;display:block}
+.matchbanner .mb-txt small{font-size:12px;color:rgba(255,255,255,.8)}
+.matchbanner .mb-arrow{color:#fff;font-size:24px;position:relative}
+.matchbanner .mb-cta{margin-top:14px;background:#fff;color:var(--acid-d);border:none;font-family:'Archivo',sans-serif;font-weight:800;font-size:14px;padding:12px;border-radius:13px;width:100%;cursor:pointer;position:relative}
+
+/* Pantalla del partido */
+.match-screen{padding:0 20px}
+.ms-card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:24px 20px;text-align:center;margin-bottom:18px}
+.ms-status{display:inline-flex;align-items:center;gap:6px;font-family:'Archivo',sans-serif;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--acid-d);background:var(--acid-soft);padding:6px 14px;border-radius:20px;margin-bottom:20px}
+.ms-status.live{color:var(--green);background:rgba(34,197,94,.12)}
+.ms-status.live .ld{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+.ms-players{display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:8px}
+.ms-pl{text-align:center;flex:1}
+.ms-pl .ms-av{width:64px;height:64px;border-radius:18px;background-size:cover;background-position:center;margin:0 auto 10px;border:2px solid var(--line)}
+.ms-pl .ms-nm{font-family:'Archivo',sans-serif;font-weight:700;font-size:15px;color:var(--txt)}
+.ms-pl .ms-rk{font-size:12px;color:var(--txt-3);margin-top:2px}
+.ms-vs{font-family:'Archivo',sans-serif;font-weight:900;font-size:20px;color:var(--txt-3)}
+.ms-info{margin:20px 0;padding-top:20px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:12px}
+.ms-info .msi{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--txt-2);justify-content:center}
+.ms-info .msi i{color:var(--acid-d);font-size:18px}
+/* Cronómetro */
+.timer{font-family:'Archivo',sans-serif;font-weight:900;font-size:56px;letter-spacing:-2px;color:var(--txt);margin:10px 0;font-variant-numeric:tabular-nums}
+.timer.run{color:var(--green)}
+.timer-label{font-size:12px;color:var(--txt-3);text-transform:uppercase;letter-spacing:1.5px;font-weight:700}
+/* Empty state de partido */
+.ms-empty{text-align:center;padding:60px 30px}
+.ms-empty .ee{width:80px;height:80px;border-radius:24px;background:var(--card-2);display:flex;align-items:center;justify-content:center;font-size:38px;color:var(--txt-3);margin:0 auto 20px}
+.ms-empty h3{font-family:'Archivo',sans-serif;font-weight:800;font-size:19px;color:var(--txt);margin-bottom:8px}
+.ms-empty p{font-size:14px;color:var(--txt-2);line-height:1.5;margin-bottom:20px}
+</style>
+</head>
+<body>
+<div id="splash">
+  <div class="sp-logo">A<span class="k">c</span>e</div>
+  <div class="sp-tag">Tu tenis, al siguiente nivel</div>
+  <div class="sp-bar"><span></span></div>
+</div>
+<div id="confetti"></div>
+<div id="ptoast"></div>
+<div id="minitoast"></div>
+
+<!-- FLUJO DE REGISTRO -->
+<div id="signup">
+  <div class="su-prog">
+    <div class="sb done" id="sb0"><span></span></div>
+    <div class="sb" id="sb1"><span></span></div>
+    <div class="sb" id="sb2"><span></span></div>
+    <div class="sb" id="sb3"><span></span></div>
+  </div>
+
+  <!-- Paso 1: nombre -->
+  <div class="su-step active" id="su-1">
+    <h2>¿Cómo te llamas?</h2>
+    <div class="su-sub">Así te verán los demás jugadores en Ace.</div>
+    <input class="su-input" id="su-name" type="text" placeholder="Tu nombre" value="Bruno G." oninput="checkName()">
+    <div class="su-spacer"></div>
+    <button class="su-btn" id="su-b1" onclick="suNext(1)">Continuar</button>
+  </div>
+
+  <!-- Paso 2: zona -->
+  <div class="su-step" id="su-2">
+    <div class="su-back" onclick="suPrev(1)"><i class="ti ti-arrow-left"></i></div>
+    <h2>¿Dónde juegas?</h2>
+    <div class="su-sub">Te conectaremos con jugadores cerca de ti.</div>
+    <div class="su-grid">
+      <div class="su-opt" onclick="suPick(this,'zona')"><div class="soi"><i class="ti ti-map-pin"></i></div><div class="sot"><b>Alhaurín de la Torre</b><small>Tu zona detectada</small></div><div class="sochk"><i class="ti ti-check"></i></div></div>
+      <div class="su-opt" onclick="suPick(this,'zona')"><div class="soi"><i class="ti ti-map-pin"></i></div><div class="sot"><b>Málaga capital</b><small>A 12 km</small></div><div class="sochk"><i class="ti ti-check"></i></div></div>
+      <div class="su-opt" onclick="suPick(this,'zona')"><div class="soi"><i class="ti ti-current-location"></i></div><div class="sot"><b>Usar mi ubicación</b><small>Detectar automáticamente</small></div><div class="sochk"><i class="ti ti-check"></i></div></div>
+    </div>
+    <div class="su-spacer"></div>
+    <button class="su-btn" id="su-b2" onclick="suNext(2)" disabled>Continuar</button>
+  </div>
+
+  <!-- Paso 3: nivel -->
+  <div class="su-step" id="su-3">
+    <div class="su-back" onclick="suPrev(2)"><i class="ti ti-arrow-left"></i></div>
+    <h2>¿Cuál es tu nivel?</h2>
+    <div class="su-sub">No te preocupes, se ajusta solo según ganes o pierdas.</div>
+    <div class="su-grid">
+      <div class="su-opt" onclick="suPick(this,'nivel')"><div class="soi"><i class="ti ti-seeding"></i></div><div class="sot"><b>Intermedio</b><small>Juego con cierta regularidad</small></div><div class="sochk"><i class="ti ti-check"></i></div></div>
+      <div class="su-opt" onclick="suPick(this,'nivel')"><div class="soi"><i class="ti ti-flame"></i></div><div class="sot"><b>Avanzado</b><small>Entreno y compito a menudo</small></div><div class="sochk"><i class="ti ti-check"></i></div></div>
+      <div class="su-opt" onclick="suPick(this,'nivel')"><div class="soi"><i class="ti ti-trophy"></i></div><div class="sot"><b>Competición</b><small>Federado o ex-federado</small></div><div class="sochk"><i class="ti ti-check"></i></div></div>
+    </div>
+    <div class="su-spacer"></div>
+    <button class="su-btn" id="su-b3" onclick="suCreate()" disabled>Crear mi perfil</button>
+  </div>
+
+  <!-- Creando perfil -->
+  <div class="su-creating" id="su-creating">
+    <div class="su-spinner" id="su-spin"></div>
+    <div class="su-check" id="su-checkmark"><i class="ti ti-check"></i></div>
+    <h2 id="su-ctitle">Creando tu perfil...</h2>
+    <p id="su-cmsg">Buscando jugadores de tu nivel cerca</p>
+  </div>
+</div>
+
+<div class="phone">
+  <div class="screen-wrap">
+
+    <!-- HOME -->
+    <section class="screen active" id="s-home">
+      <div class="top">
+        <div class="brand">A<span class="k">c</span>e</div>
+        <div class="top-actions">
+          <div class="iconbtn" onclick="toggleTheme()" id="themebtn"><i class="ti ti-moon"></i></div>
+          <div class="iconbtn" onclick="go('notif')"><i class="ti ti-bell"></i><span class="dot"></span></div>
+          <div class="iconbtn avatar" onclick="go('miperfil')">BG</div>
+        </div>
+      </div>
+
+      <div class="bighero">
+        <div class="label" id="greeting">Hola Bruno · tu posición en Málaga</div>
+        <div class="bigrank"><span class="hash">#</span><span id="rankNum">14</span></div>
+        <div class="subrank"><span class="pts"><span id="ptsNum">1.240</span> puntos</span><span class="chg">▲ 35 esta semana</span></div>
+        <div class="metarow">
+          <div class="mi"><div class="v">24</div><div class="l">Partidos</div></div>
+          <div class="mi"><div class="v acid">3</div><div class="l">Racha</div></div>
+          <div class="mi"><div class="v">63%</div><div class="l">Victorias</div></div>
+        </div>
+      </div>
+
+      <div class="matchbanner" onclick="go('partido')">
+        <div class="mb-top"><span class="live"><span class="ld"></span> Tienes un partido</span></div>
+        <div class="mb-body">
+          <div class="mb-vs">
+            <div class="mb-av" data-face="jm"></div>
+            <div class="mb-txt"><b>vs Javi Morales</b><small>Sábado 7 · 10:00 · El Candado</small></div>
+          </div>
+          <i class="ti ti-chevron-right mb-arrow"></i>
+        </div>
+        <button class="mb-cta" onclick="event.stopPropagation();go('partido')">Ir al partido</button>
+      </div>
+
+      <div class="social-proof">
+        <div class="sp-avs">
+          <div class="spa" data-face="mt"></div>
+          <div class="spa" data-face="jm"></div>
+          <div class="spa" data-face="dr"></div>
+          <div class="spa" data-face="pg"></div>
+        </div>
+        <div class="sp-tx"><b>147 jugadores</b> activos en Málaga · <b>28 partidos</b> esta semana</div>
+      </div>
+
+      <div class="stog">
+        <div class="stx"><b><span class="ld"></span> Disponible para jugar</b><small>Otros pueden retarte ahora</small></div>
+        <div class="tg" onclick="toggleAvail(this)"></div>
+      </div>
+
+      <div class="cta" onclick="alert('Buscando jugadores disponibles cerca — maqueta')">
+        <div class="cta-ic"><i class="ti ti-bolt"></i></div>
+        <div class="cta-tx"><b>Busco partido hoy</b><small>Avisa a rivales libres cerca de ti</small></div>
+        <i class="ti ti-arrow-right cta-ar"></i>
+      </div>
+
+      <div class="sh"><h2>Próximo partido</h2></div>
+      <div class="next" onclick="go('chat')">
+        <div class="nt"><span class="tag">Oficial</span><span class="when">Sábado 7 · 10:00</span></div>
+        <div class="nrow">
+          <div class="np"><div class="av c2" data-face="bg">BG</div><div class="nm">Tú</div></div>
+          <div class="vs">VS</div>
+          <div class="np" style="justify-content:flex-end"><div class="nm">Javi M.</div><div class="av c1" data-face="jm">JM</div></div>
+        </div>
+        <div class="nloc"><i class="ti ti-map-pin"></i> Club El Candado, Alhaurín de la Torre</div>
+      </div>
+
+      <div class="qa">
+        <div class="qac" onclick="go('torneos')"><div class="qi"><i class="ti ti-trophy"></i></div><b>Torneos</b><small>3 abiertos</small></div>
+        <div class="qac" onclick="go('mapa')"><div class="qi"><i class="ti ti-map-2"></i></div><b>Clubes</b><small>4 cerca</small></div>
+      </div>
+
+      <div class="sh"><h2>Actividad de la comunidad</h2></div>
+      <div class="feed">
+        <div class="fitem"><div class="fav" data-face="dr"></div><div class="ftx"><b>Dani Ruiz</b> ganó a <b>Lucas Peña</b><div class="ft">hace 1 hora · 6-3 6-4</div></div><div class="fbadge win"><i class="ti ti-trophy"></i></div></div>
+        <div class="fitem"><div class="fav" data-face="pg"></div><div class="ftx"><b>Pablo Gil</b> subió al puesto #19<div class="ft">hace 3 horas · +14 pts</div></div><div class="fbadge up"><i class="ti ti-trending-up"></i></div></div>
+        <div class="fitem"><div class="fav" data-face="sr"></div><div class="ftx"><b>Sergio Romero</b> se unió a Ace<div class="ft">hace 5 horas · Club Las Lomas</div></div><div class="fbadge join"><i class="ti ti-user-plus"></i></div></div>
+      </div>
+
+      <div class="sh"><h2>Campeón del mes</h2></div>
+      <div class="champ" onclick="go('perfil')">
+        <div class="cg"></div>
+        <div class="cl"><i class="ti ti-crown"></i> Junio · Málaga</div>
+        <div class="cb">
+          <div class="cp" data-face="mt">MT</div>
+          <div style="flex:1"><div class="cn">Miguel Torres</div><div class="cs">1.610 puntos · 41 partidos</div></div>
+          <i class="ti ti-chevron-right car"></i>
+        </div>
+      </div>
+    </section>
+
+    <!-- BUSCAR -->
+    <section class="screen" id="s-buscar">
+      <div class="ptitle"><h1>Buscar</h1><p>Rivales de tu nivel · Málaga</p></div>
+      <div class="seg">
+        <button class="on" onclick="tmode(this,'i')"><i class="ti ti-user"></i> Individual</button>
+        <button onclick="tmode(this,'d')"><i class="ti ti-users"></i> Dobles</button>
+      </div>
+      <div id="m-i">
+        <div class="chips">
+          <div class="chip on" onclick="tchip(this)">Tu nivel</div>
+          <div class="chip" onclick="tchip(this)">Más cerca</div>
+          <div class="chip" onclick="tchip(this)">Libres hoy</div>
+          <div class="chip" onclick="tchip(this)">Más fiables</div>
+        </div>
+        <div class="plist stagger">
+          <div class="prow" onclick="go('perfil')"><div class="pa c1" data-face="jm">JM<span class="rel g card"><i class="ti ti-check"></i></span></div><div class="pinf"><div class="nm">Javi Morales</div><div class="mt"><span class="lv">Avanzado · #12</span> · <i class="ti ti-map-pin"></i>3 km · <i class="ti ti-shield-check"></i>98%</div></div><button class="pbtn" onclick="event.stopPropagation();go('reto')">Retar</button></div>
+          <div class="prow" onclick="go('perfil')"><div class="pa c3" data-face="cl">CL</div><div class="pinf"><div class="nm">Carlos León</div><div class="mt"><span class="lv">Avanzado · #16</span> · <i class="ti ti-map-pin"></i>5 km · <i class="ti ti-clock"></i>82%</div></div><button class="pbtn" onclick="event.stopPropagation();go('reto')">Retar</button></div>
+          <div class="prow" onclick="go('perfil')"><div class="pa c2" data-face="dr">DR<span class="rel g card"><i class="ti ti-check"></i></span></div><div class="pinf"><div class="nm">Dani Ruiz</div><div class="mt"><span class="lv">Inter-alto · #18</span> · <i class="ti ti-map-pin"></i>6 km · <i class="ti ti-shield-check"></i>95%</div></div><button class="pbtn" onclick="event.stopPropagation();go('reto')">Retar</button></div>
+          <div class="prow" onclick="go('perfilbad')"><div class="pa c4" data-face="as">AS<span class="rel b card"><i class="ti ti-alert-triangle"></i></span></div><div class="pinf"><div class="nm">Álvaro Sanz</div><div class="mt"><span class="lv">Avanzado · #11</span> · <i class="ti ti-map-pin"></i>9 km · <i class="ti ti-alert-triangle"></i>61%</div></div><button class="pbtn gh" onclick="event.stopPropagation();go('reto')">Retar</button></div>
+          <div class="prow" onclick="go('perfil')"><div class="pa c1" data-face="pg">PG<span class="rel g card"><i class="ti ti-check"></i></span></div><div class="pinf"><div class="nm">Pablo Gil</div><div class="mt"><span class="lv">Inter-alto · #20</span> · <i class="ti ti-map-pin"></i>4 km · <i class="ti ti-clock"></i>Libre hoy</div></div><button class="pbtn" onclick="event.stopPropagation();go('reto')">Retar</button></div>
+          <div class="prow" onclick="go('perfil')"><div class="pa c5" data-face="im">IM<span class="rel g card"><i class="ti ti-check"></i></span></div><div class="pinf"><div class="nm">Iván Marín</div><div class="mt"><span class="lv">Avanzado · #15</span> · <i class="ti ti-map-pin"></i>7 km · <i class="ti ti-shield-check"></i>89%</div></div><button class="pbtn" onclick="event.stopPropagation();go('reto')">Retar</button></div>
+        </div>
+      </div>
+      <div id="m-d" style="display:none">
+        <div class="sh"><h2>Parejas buscando rival</h2></div>
+        <div class="plist">
+          <div class="dbl" onclick="go('reto')"><div class="dp"><div class="pa c1">JM</div><div class="pa c3" data-face="cl">CL</div></div><div class="di"><div class="dn">Javi M. & Carlos L.</div><div class="ds">Buscan pareja · sábado tarde</div><div class="dlv">Nivel medio · #12 y #16</div></div><button class="pbtn" onclick="event.stopPropagation();go('reto')">Retar</button></div>
+          <div class="dbl" onclick="go('reto')"><div class="dp"><div class="pa c2">DR</div><div class="pa c4">PG</div></div><div class="di"><div class="dn">Dani R. & Pablo G.</div><div class="ds">Buscan pareja · domingo</div><div class="dlv">Medio-alto · #18 y #20</div></div><button class="pbtn" onclick="event.stopPropagation();go('reto')">Retar</button></div>
+        </div>
+        <div class="sh"><h2>Jugadores para hacer pareja</h2></div>
+        <div class="plist">
+          <div class="prow" onclick="go('perfil')"><div class="pa c5">IM</div><div class="pinf"><div class="nm">Iván Marín</div><div class="mt"><span class="lv">Busca compañero</span> · <i class="ti ti-map-pin"></i>7 km</div></div><button class="pbtn" onclick="event.stopPropagation();go('reto')">Invitar</button></div>
+          <div class="prow" onclick="go('perfil')"><div class="pa c1">LP</div><div class="pinf"><div class="nm">Lucas Peña</div><div class="mt"><span class="lv">Busca compañero</span> · <i class="ti ti-map-pin"></i>4 km</div></div><button class="pbtn" onclick="event.stopPropagation();go('reto')">Invitar</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RANKING -->
+    <section class="screen" id="s-ranking">
+      <div class="ptitle"><h1>Ranking</h1><p>Málaga · Temporada 2026</p></div>
+      <div class="chips">
+        <div class="chip on" onclick="tchip(this)">Málaga</div>
+        <div class="chip" onclick="tchip(this)">Mi nivel</div>
+        <div class="chip" onclick="tchip(this)">Mi club</div>
+        <div class="chip" onclick="tchip(this)">Andalucía</div>
+      </div>
+      <div class="podium">
+        <div class="pod r2" onclick="go('perfil')"><div class="pp c5" data-face="sr">SR</div><div class="pm">2º</div><div class="pn">Sergio R.</div><div class="px">1.575</div></div>
+        <div class="pod r1" onclick="go('perfil')"><div class="pp c3" data-face="mt">MT</div><div class="pm">1º</div><div class="pn">Miguel T.</div><div class="px">1.610</div></div>
+        <div class="pod r3" onclick="go('perfil')"><div class="pp c4" data-face="nf">NF</div><div class="pm">3º</div><div class="pn">Nacho F.</div><div class="px">1.520</div></div>
+      </div>
+      <div class="rlist">
+        <div class="rr" onclick="go('perfil')"><div class="rn">4</div><div class="ra c1" data-face="lc">LC</div><div class="rnm">Luis Cano<small>33 partidos</small></div><div><div class="rp">1.488</div><div class="rd u">▲2</div></div></div>
+        <div class="rr" onclick="go('perfil')"><div class="rn">5</div><div class="ra c4" data-face="rt">RT</div><div class="rnm">Rubén Torre<small>29 partidos</small></div><div><div class="rp">1.452</div><div class="rd d">▼1</div></div></div>
+        <div class="rr" onclick="go('perfil')"><div class="rn">11</div><div class="ra c2" data-face="as">AS</div><div class="rnm">Álvaro Sanz<small>22 partidos</small></div><div><div class="rp">1.290</div><div class="rd u">▲1</div></div></div>
+        <div class="rr" onclick="go('perfil')"><div class="rn">12</div><div class="ra c1" data-face="jm">JM</div><div class="rnm">Javi Morales<small>27 partidos</small></div><div><div class="rp">1.275</div><div class="rd u">▲3</div></div></div>
+        <div class="rr" onclick="go('perfil')"><div class="rn">13</div><div class="ra c3" data-face="lp">LP</div><div class="rnm">Lucas Peña<small>19 partidos</small></div><div><div class="rp">1.258</div><div class="rd d">▼2</div></div></div>
+        <div class="rr me" onclick="go('miperfil')"><div class="rn">14</div><div class="ra c2" data-face="bg">BG</div><div class="rnm">Tú (Bruno G.)<small>24 partidos</small></div><div><div class="rp">1.240</div><div class="rd u">▲5</div></div></div>
+        <div class="rr" onclick="go('perfil')"><div class="rn">15</div><div class="ra c4" data-face="im">IM</div><div class="rnm">Iván Marín<small>21 partidos</small></div><div><div class="rp">1.221</div><div class="rd d">▼1</div></div></div>
+        <div class="rr" onclick="go('perfil')"><div class="rn">16</div><div class="ra c1" data-face="cl">CL</div><div class="rnm">Carlos León<small>18 partidos</small></div><div><div class="rp">1.198</div><div class="rd u">▲2</div></div></div>
+      </div>
+    </section>
+
+    <!-- RESULTADO -->
+    <!-- PARTIDO -->
+    <section class="screen" id="s-partido">
+      <div class="ptitle"><h1>Tu partido</h1></div>
+      <div class="match-screen">
+        <!-- Estado A: partido programado, sin empezar -->
+        <div id="ms-pre">
+          <div class="ms-card">
+            <div class="ms-status"><i class="ti ti-calendar"></i> Programado</div>
+            <div class="ms-players">
+              <div class="ms-pl"><div class="ms-av" data-face="bg"></div><div class="ms-nm">Tú</div><div class="ms-rk">#14 · 1.240</div></div>
+              <div class="ms-vs">VS</div>
+              <div class="ms-pl"><div class="ms-av" data-face="jm"></div><div class="ms-nm">Javi Morales</div><div class="ms-rk">#12 · 1.275</div></div>
+            </div>
+            <div class="ms-info">
+              <div class="msi"><i class="ti ti-calendar"></i> Sábado 7 · 10:00</div>
+              <div class="msi"><i class="ti ti-map-pin"></i> Club El Candado, Alhaurín</div>
+              <div class="msi"><i class="ti ti-trophy"></i> Oficial · cuenta para el ranking</div>
+            </div>
+          </div>
+          <button class="btn" onclick="startMatch()"><i class="ti ti-player-play"></i> Empezar partido</button>
+          <button class="btn gh" style="margin-top:10px" onclick="go('chat')">Hablar con Javi</button>
+        </div>
+
+        <!-- Estado B: partido en juego, cronómetro -->
+        <div id="ms-live" style="display:none">
+          <div class="ms-card">
+            <div class="ms-status live"><span class="ld"></span> En juego</div>
+            <div class="ms-players">
+              <div class="ms-pl"><div class="ms-av" data-face="bg"></div><div class="ms-nm">Tú</div></div>
+              <div class="ms-vs">VS</div>
+              <div class="ms-pl"><div class="ms-av" data-face="jm"></div><div class="ms-nm">Javi M.</div></div>
+            </div>
+            <div class="timer-label">Tiempo de juego</div>
+            <div class="timer run" id="timer">00:00</div>
+          </div>
+          <button class="btn" onclick="finishMatch()"><i class="ti ti-flag-checkered"></i> Finalizar partido</button>
+        </div>
+
+        <!-- Estado C: finalizado, meter resultado -->
+        <div id="ms-result" style="display:none">
+          <div class="ms-status" style="display:block;margin:0 auto 18px;width:fit-content"><i class="ti ti-clock-check"></i> Partido finalizado · <span id="finaltime">42:15</span></div>
+          <div class="slabel">¿Quién ganó? Toca al ganador</div>
+          <div class="vsbox" style="margin-left:0;margin-right:0">
+            <div class="sd w" id="sdA" onclick="pickW('A')"><div class="pa c2" data-face="bg">BG</div><div class="nm">Tú</div><div class="tg2">#14</div><div class="wt">Ganador</div></div>
+            <div class="vm">VS</div>
+            <div class="sd" id="sdB" onclick="pickW('B')"><div class="pa c1" data-face="jm">JM</div><div class="nm">Javi M.</div><div class="tg2">#12</div><div class="wt">Ganador</div></div>
+          </div>
+          <div class="slabel">Resultado por sets</div>
+          <div class="sets" style="padding:0">
+            <div class="setr"><span class="sl">Set 1</span><div class="sbox"><span class="sv">6</span><span class="sd2">—</span><span class="sv">3</span></div></div>
+            <div class="setr"><span class="sl">Set 2</span><div class="sbox"><span class="sv">4</span><span class="sd2">—</span><span class="sv">6</span></div></div>
+            <div class="setr"><span class="sl">Set 3</span><div class="sbox"><span class="sv">6</span><span class="sd2">—</span><span class="sv">2</span></div></div>
+          </div>
+          <button class="btn" onclick="confR(this)">Enviar resultado</button>
+          <p class="hint">Javi recibirá una notificación para confirmar. Cuando confirme, los puntos se ajustan en el ranking.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TORNEOS -->
+    <section class="screen" id="s-torneos">
+      <div class="ptitle"><h1><i class="ti ti-arrow-left backic" onclick="go('home')"></i> Torneos</h1><p>Compite por subir más rápido</p></div>
+      <div class="chips">
+        <div class="chip on" onclick="tchip(this)">Cerca</div>
+        <div class="chip" onclick="tchip(this)">Mi nivel</div>
+        <div class="chip" onclick="tchip(this)">Inscrito</div>
+      </div>
+      <div class="tc" onclick="alert('Detalle — maqueta')"><div class="tb"><span class="ts">Abierto</span><h3>Liga de Otoño Málaga</h3></div><div class="tbd"><div class="tr"><i class="ti ti-users"></i> 24 jugadores · avanzado</div><div class="tr"><i class="ti ti-calendar"></i> Empieza 15 jun · 5 semanas</div><div class="tr"><i class="ti ti-trophy"></i> Liguilla · todos contra todos</div><div class="tf"><span style="width:75%"></span></div><div class="tft">18 de 24 plazas</div></div></div>
+      <div class="tc" onclick="alert('Detalle — maqueta')"><div class="tb g"><span class="ts">En curso</span><h3>Copa El Candado</h3></div><div class="tbd"><div class="tr"><i class="ti ti-users"></i> 16 jugadores · eliminatoria</div><div class="tr"><i class="ti ti-calendar"></i> Cuartos esta semana</div><div class="tr"><i class="ti ti-flame"></i> Vas en cuartos vs Sergio R.</div></div></div>
+      <div class="tc" onclick="alert('Detalle — maqueta')"><div class="tb gl"><span class="ts">Pronto</span><h3>Open Costa del Sol</h3></div><div class="tbd"><div class="tr"><i class="ti ti-users"></i> 32 jugadores · todos</div><div class="tr"><i class="ti ti-calendar"></i> Inscripción desde 1 jul</div><div class="tr"><i class="ti ti-award"></i> Premios top 3</div></div></div>
+    </section>
+
+    <!-- MAPA -->
+    <section class="screen" id="s-mapa">
+      <div class="ptitle"><h1><i class="ti ti-arrow-left backic" onclick="go('home')"></i> Clubes</h1><p>Dónde juega la gente cerca</p></div>
+      <div class="mapb">
+        <div class="mg"></div>
+        <div class="rd" style="top:85px;left:0;right:0;height:10px"></div>
+        <div class="rd" style="top:0;bottom:0;left:120px;width:10px"></div>
+        <div class="mp" style="left:75px;top:65px" onclick="alert('Club El Candado — 12 jugadores')"><div class="md"><i class="ti ti-ball-tennis"></i></div><div class="ml">El Candado</div></div>
+        <div class="mp" style="left:200px;top:115px" onclick="alert('Las Lomas — 8 jugadores')"><div class="md"><i class="ti ti-ball-tennis"></i></div><div class="ml">Las Lomas</div></div>
+        <div class="mp" style="left:285px;top:175px" onclick="alert('Indoor — 6 jugadores')"><div class="md"><i class="ti ti-ball-tennis"></i></div><div class="ml">Indoor</div></div>
+      </div>
+      <div class="cll">
+        <div class="clc" onclick="alert('Detalle — maqueta')"><div class="ci"><i class="ti ti-building"></i></div><div class="cin"><b>Club El Candado</b><small>Alhaurín · 4 pistas · tierra</small></div><div class="cpl"><div class="cnum">12</div><div class="clb">activos</div></div></div>
+        <div class="clc" onclick="alert('Detalle — maqueta')"><div class="ci"><i class="ti ti-building"></i></div><div class="cin"><b>Las Lomas</b><small>Málaga · 6 pistas · dura</small></div><div class="cpl"><div class="cnum">8</div><div class="clb">activos</div></div></div>
+        <div class="clc" onclick="alert('Detalle — maqueta')"><div class="ci"><i class="ti ti-building"></i></div><div class="cin"><b>Pádel Indoor Málaga</b><small>Málaga · 3 pistas · indoor</small></div><div class="cpl"><div class="cnum">6</div><div class="clb">activos</div></div></div>
+      </div>
+    </section>
+
+    <div class="tab" data-s="comunidad" onclick="go('comunidad')"><i class="ti ti-users-group"></i><span>Comunidad</span></div>
+
+    <!-- PERFIL (otro) -->
+    <section class="screen" id="s-perfil">
+      <div style="padding:16px 20px 0"><i class="ti ti-arrow-left backic" onclick="go('buscar')"></i></div>
+      <div class="ph"><div class="pa c1" data-face="jm">JM<span class="online"></span></div><div class="pn">Javi Morales</div>
+        <div class="pl"><i class="ti ti-map-pin"></i> Alhaurín de la Torre · 3 km</div>
+        <div class="badges"><span class="pb lv">AVANZADO · #12</span><span class="pb cl"><i class="ti ti-rosette-discount-check"></i> Club El Candado</span></div>
+      </div>
+      <div class="pstats" style="margin-top:24px">
+        <div class="pstat"><div class="v">27</div><div class="l">Partidos</div></div>
+        <div class="pstat"><div class="v acid">19</div><div class="l">Victorias</div></div>
+        <div class="pstat"><div class="v">70%</div><div class="l">Win rate</div></div>
+      </div>
+      <div class="relb">
+        <div class="rh"><div class="t"><i class="ti ti-shield-check"></i> Fiabilidad</div><div class="sc">98%</div></div>
+        <div class="relbar"><span style="width:98%"></span></div>
+        <div class="relbadges"><span class="rbg"><i class="ti ti-circle-check"></i> Siempre confirma</span><span class="rbg"><i class="ti ti-clock-check"></i> Puntual</span><span class="rbg"><i class="ti ti-bolt"></i> Responde rápido</span></div>
+      </div>
+      <div class="h2h">
+        <div class="ht">Vuestro cara a cara</div>
+        <div class="hs">
+          <div class="hsd win"><div class="pa c2">BG</div><div class="w">3</div><div class="n">Tú</div></div>
+          <div class="hv">—</div>
+          <div class="hsd lose"><div class="pa c1">JM</div><div class="w">2</div><div class="n">Javi</div></div>
+        </div>
+        <div class="hh"><span class="hd w">V</span><span class="hd l">D</span><span class="hd w">V</span><span class="hd w">V</span><span class="hd l">D</span></div>
+      </div>
+      <div class="sh"><h2>Valoración como rival</h2></div>
+      <div class="reviews">
+        <div style="text-align:center;margin-bottom:14px">
+          <div class="stars" style="font-size:20px"><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i><i class="ti ti-star-filled"></i></div>
+          <div class="ratingline" style="justify-content:center">4.9 · 18 valoraciones de rivales</div>
+        </div>
+        <div class="review"><div class="rv-top"><div class="rv-av" data-face="im"></div><div class="rv-nm">Iván Marín<small>jugó hace 1 semana</small></div></div><div class="rv-tx">"Muy buen rival y mejor persona. Puntual y con buen rollo. Repetiré seguro."</div></div>
+        <div class="review"><div class="rv-top"><div class="rv-av" data-face="pg"></div><div class="rv-nm">Pablo Gil<small>jugó hace 2 semanas</small></div></div><div class="rv-tx">"Partidazo. Nivel alto y muy deportivo. Recomendado 100%."</div></div>
+      </div>
+      <button class="btn" onclick="go('reto')">Retar a Javi</button>
+      <button class="btn gh" style="margin-top:10px" onclick="go('chat')">Enviar mensaje</button>
+    </section>
+
+    <!-- PERFIL malo -->
+    <section class="screen" id="s-perfilbad">
+      <div style="padding:16px 20px 0"><i class="ti ti-arrow-left backic" onclick="go('buscar')"></i></div>
+      <div class="ph">
+        <div class="pa c4" data-face="as">AS</div><div class="pn">Álvaro Sanz</div>
+        <div class="pl"><i class="ti ti-map-pin"></i> Málaga centro · 9 km</div>
+        <div class="badges"><span class="pb lv">AVANZADO · #11</span></div>
+      </div>
+      <div class="warnb" style="margin-top:24px"><i class="ti ti-alert-triangle"></i><p>Este jugador ha cancelado o no se ha presentado en varios de sus últimos partidos. Confirma bien los detalles antes de quedar.</p></div>
+      <div class="relb">
+        <div class="rh"><div class="t"><i class="ti ti-shield-check"></i> Fiabilidad</div><div class="sc b">61%</div></div>
+        <div class="relbar"><span class="b" style="width:61%"></span></div>
+        <div class="relbadges"><span class="rbg neg"><i class="ti ti-calendar-x"></i> Dejó plantado 2 veces</span><span class="rbg neg"><i class="ti ti-clock-x"></i> Suele llegar tarde</span></div>
+      </div>
+      <div class="pstats">
+        <div class="pstat"><div class="v">15</div><div class="l">Partidos</div></div>
+        <div class="pstat"><div class="v acid">9</div><div class="l">Victorias</div></div>
+        <div class="pstat"><div class="v">60%</div><div class="l">Win rate</div></div>
+      </div>
+      <button class="btn gh" onclick="go('reto')">Retar de todas formas</button>
+    </section>
+
+    <!-- MI PERFIL -->
+    <section class="screen" id="s-miperfil">
+      <div class="ph" style="padding-top:24px">
+        <div class="pa c2" data-face="bg">BG</div><div class="pn">Bruno G.</div>
+        <div class="pl"><i class="ti ti-map-pin"></i> Alhaurín de la Torre</div>
+        <div class="badges"><span class="pb lv">AVANZADO · #14 MÁLAGA</span></div>
+      </div>
+      <div class="pstats">
+        <div class="pstat"><div class="v">24</div><div class="l">Partidos</div></div>
+        <div class="pstat"><div class="v acid">15</div><div class="l">Victorias</div></div>
+        <div class="pstat"><div class="v">63%</div><div class="l">Win rate</div></div>
+      </div>
+      <div class="relb">
+        <div class="rh"><div class="t"><i class="ti ti-shield-check"></i> Tu fiabilidad</div><div class="sc">96%</div></div>
+        <div class="relbar"><span style="width:96%"></span></div>
+        <div class="relbadges"><span class="rbg"><i class="ti ti-circle-check"></i> Siempre confirmas</span><span class="rbg"><i class="ti ti-clock-check"></i> Puntual</span></div>
+      </div>
+      <div class="sh"><h2>Logros</h2></div>
+      <div class="achg">
+        <div class="ach"><div class="ai g"><i class="ti ti-trophy"></i></div><div class="an">Primera victoria</div></div>
+        <div class="ach"><div class="ai gr"><i class="ti ti-flame"></i></div><div class="an">Racha de 3</div></div>
+        <div class="ach"><div class="ai a"><i class="ti ti-ball-tennis"></i></div><div class="an">10 partidos</div></div>
+        <div class="ach"><div class="ai a"><i class="ti ti-arrow-up-right"></i></div><div class="an">Top 15</div></div>
+        <div class="ach lk"><div class="ai x"><i class="ti ti-crown"></i></div><div class="an">Campeón mes</div></div>
+        <div class="ach lk"><div class="ai x"><i class="ti ti-swords"></i></div><div class="an">25 partidos</div><div class="as">24/25</div></div>
+      </div>
+      <button class="btn gh" style="margin-top:24px" onclick="go('stats')">Ver estadísticas Pro</button>
+      <button class="btn gh" style="margin-top:10px" onclick="go('compartir')">Compartir mi progreso</button>
+      <p class="hint"><a onclick="go('onboarding')" style="color:var(--txt-3);cursor:pointer;text-decoration:underline">Ver pantalla de bienvenida</a></p>
+    </section>
+
+    <!-- STATS -->
+    <section class="screen" id="s-stats">
+      <div class="ptitle"><h1><i class="ti ti-arrow-left backic" onclick="go('miperfil')"></i> Estadísticas</h1></div>
+      <div class="pro">
+        <span class="pt"><i class="ti ti-crown"></i> Ace Pro</span>
+        <h3>Conoce tu juego a fondo</h3>
+        <p>Tu evolución, contra quién ganas más y en qué superficie rindes mejor.</p>
+        <button class="pbtn" onclick="alert('Ace Pro — maqueta')">Probar Pro · 7,99€/mes</button>
+      </div>
+      <div class="sbcards">
+        <div class="sbc"><div class="sbh"><h4>Evolución de puntos</h4><i class="ti ti-trending-up"></i></div><div class="bars" id="evobars"><div class="bw"><div class="br" style="height:50%"><span style="--h:100%;height:100%"></span></div><div class="bl">Ene</div></div><div class="bw"><div class="br" style="height:62%"><span style="--h:100%;height:100%"></span></div><div class="bl">Feb</div></div><div class="bw"><div class="br" style="height:55%"><span style="--h:100%;height:100%"></span></div><div class="bl">Mar</div></div><div class="bw"><div class="br" style="height:74%"><span style="--h:100%;height:100%"></span></div><div class="bl">Abr</div></div><div class="bw"><div class="br" style="height:82%"><span style="--h:100%;height:100%"></span></div><div class="bl">May</div></div><div class="bw"><div class="br" style="height:95%"><span style="--h:100%;height:100%"></span></div><div class="bl">Jun</div></div></div></div>
+        <div class="sbc"><div class="sbh"><h4>Victorias vs derrotas</h4><i class="ti ti-chart-pie"></i></div><div class="donut"><div class="rg" style="background:conic-gradient(var(--acid) 0% 63%, var(--card-2) 63% 100%)"><div class="in"><b>63%</b><small>win rate</small></div></div><div class="dl"><div class="dr"><span class="sw" style="background:var(--acid)"></span> 15 victorias</div><div class="dr"><span class="sw" style="background:var(--card-2)"></span> 9 derrotas</div><div class="dr"><span class="sw" style="background:var(--green)"></span> Racha: 3</div></div></div></div>
+        <div class="sbc"><div class="sbh"><h4>Por superficie</h4><i class="ti ti-layout-grid"></i></div><div class="surf"><span class="sn">Tierra batida</span><span class="sv">71% · 10/14</span></div><div class="surf"><span class="sn">Pista dura</span><span class="sv">50% · 5/10</span></div><div class="surf"><span class="sn">Indoor</span><span class="sv">60% · 3/5</span></div></div>
+      </div>
+    </section>
+
+    <!-- COMPARTIR -->
+    <section class="screen noTab" id="s-compartir">
+      <div class="ptitle"><h1><i class="ti ti-arrow-left backic" onclick="go('miperfil')"></i> Comparte</h1></div>
+      <div class="shc">
+        <div class="sl">Ace</div>
+        <div class="sbig">6-4 6-3</div>
+        <div class="ss">Victoria vs Pablo Gil</div>
+        <div class="ss" style="margin-top:12px">▲ +18 pts · #14 en Málaga</div>
+      </div>
+      <p class="hint" style="padding-top:0">Comparte tu progreso y reta a más gente a unirse</p>
+      <div class="shb">
+        <div class="shbt" onclick="alert('Instagram — maqueta')"><i class="ti ti-brand-instagram" style="color:#C13584"></i>Stories</div>
+        <div class="shbt" onclick="alert('WhatsApp — maqueta')"><i class="ti ti-brand-whatsapp" style="color:#25D366"></i>WhatsApp</div>
+        <div class="shbt" onclick="alert('TikTok — maqueta')"><i class="ti ti-brand-tiktok"></i>TikTok</div>
+      </div>
+    </section>
+
+    <!-- NOTIF -->
+    <section class="screen noTab" id="s-notif">
+      <div class="ptitle"><h1><i class="ti ti-arrow-left backic" onclick="go('home')"></i> Notificaciones</h1></div>
+      <div class="nfl">
+        <div class="nf un"><div class="nfi c"><i class="ti ti-ball-tennis"></i></div><div class="nft"><p><b>Javi Morales</b> ha aceptado tu reto para el sábado a las 10:00.</p><div class="tm">hace 12 min</div></div></div>
+        <div class="nf un"><div class="nfi r"><i class="ti ti-trending-up"></i></div><div class="nft"><p>¡Has subido al <b>#14</b> de Málaga! +35 puntos.</p><div class="tm">hace 2 h</div></div></div>
+        <div class="nf"><div class="nfi w"><i class="ti ti-circle-check"></i></div><div class="nft"><p>Pablo Gil confirmó el resultado. <b>+18 puntos</b>.</p><div class="tm">ayer</div></div></div>
+        <div class="nf"><div class="nfi m"><i class="ti ti-message-circle"></i></div><div class="nft"><p><b>Carlos León</b> te ha enviado un mensaje.</p><div class="tm">ayer</div></div></div>
+        <div class="nf"><div class="nfi r"><i class="ti ti-trophy"></i></div><div class="nft"><p>La <b>Liga de Otoño</b> abre inscripciones. Quedan 6 plazas.</p><div class="tm">hace 2 días</div></div></div>
+      </div>
+    </section>
+
+    <!-- RETO -->
+    <section class="screen" id="s-reto">
+      <div class="ptitle"><h1><i class="ti ti-arrow-left backic" onclick="go('buscar')"></i> Proponer partido</h1></div>
+      <div class="csb"><i class="ti ti-ball-tennis bi"></i><h2>Reto a Javi Morales</h2><p>#12 · Avanzado · a 3 km de ti</p></div>
+      <div class="csd">
+        <div class="dr"><i class="ti ti-calendar"></i><div><div class="dk">Cuándo</div><div class="dv">Sábado 7 · 10:00</div></div></div>
+        <div class="dr"><i class="ti ti-map-pin"></i><div><div class="dk">Dónde</div><div class="dv">Club El Candado (a acordar)</div></div></div>
+        <div class="dr"><i class="ti ti-trophy"></i><div><div class="dk">Tipo</div><div class="dv">Oficial · cuenta para ranking</div></div></div>
+      </div>
+      <button class="btn" onclick="go('chat')">Enviar reto</button>
+      <p class="hint">Cuando Javi acepte, cerráis los detalles por el chat.</p>
+    </section>
+
+    <!-- CHAT -->
+    <section class="screen noTab" id="s-chat">
+      <div class="chh"><i class="ti ti-arrow-left backic" onclick="go('home')"></i><div class="cpa c1">JM</div><div class="ci"><b>Javi Morales</b><small>● En línea</small></div></div>
+      <div class="chbody">
+        <div class="dsep">Hoy</div>
+        <div class="mcard"><div class="mcl"><i class="ti ti-ball-tennis"></i> Reto aceptado</div><div class="mcr"><i class="ti ti-calendar"></i> Sábado 7 · 10:00</div><div class="mcr"><i class="ti ti-map-pin"></i> Club El Candado</div></div>
+        <div class="bub them">¡Hecho! Nos vemos el sábado. ¿Reservas tú la pista o la cojo yo?</div>
+        <div class="bub me">La cojo yo, tranquilo. A las 10 en El Candado</div>
+        <div class="bub them">Perfecto. Aviso que vengo en racha eh jaja</div>
+        <div class="bub me">Ya lo veremos en la pista</div>
+      </div>
+      <div class="chin"><input type="text" placeholder="Escribe un mensaje..." onkeydown="if(event.key==='Enter')sendM(this)"><button class="snd" onclick="sendM(this.previousElementSibling)"><i class="ti ti-arrow-up"></i></button></div>
+    </section>
+
+    <!-- COMUNIDAD -->
+<section class="screen" id="s-comunidad">
+  <div class="ptitle"><h1>Comunidad</h1><p>Lo que pasa en el tenis de Málaga</p></div>
+  <div class="csubtabs">
+    <button class="on" onclick="csub(this,'feed')">Publicaciones</button>
+    <button onclick="csub(this,'act')">Actividad</button>
+  </div>
+  <div id="c-feed">
+    <div class="newpost" onclick="miniToast('Crear publicación — maqueta')">
+      <div class="npa" data-face="bg"></div>
+      <div class="npt">Comparte algo con la comunidad...</div>
+      <i class="ti ti-photo npic"></i>
+    </div>
+    <div class="post">
+      <div class="ph-top"><div class="ph-av" data-face="dr"></div><div class="ph-meta"><div class="pn">Dani Ruiz</div><div class="pt">hace 1 hora · Club El Candado</div></div><i class="ti ti-dots ph-more"></i></div>
+      <div class="ph-text">¡Partidazo esta mañana! Por fin le gano a Lucas después de 3 intentos 💪🎾</div>
+      <div class="ph-result"><div><div class="prl">Victoria</div><div class="prw">vs Lucas Peña</div></div><div class="prs">6-3 6-4</div></div>
+      <div class="ph-actions"><div class="ph-act" onclick="likePost(this)"><i class="ti ti-heart"></i> <span>12</span></div><div class="ph-act"><i class="ti ti-message-circle"></i> 3</div><div class="ph-act" style="margin-left:auto"><i class="ti ti-share"></i></div></div>
+      <div class="ph-comments">
+        <div class="pc"><div class="pca" data-face="im"></div><div class="pcb"><div class="pcn">Iván Marín</div><div class="pct">¡Crack! La revancha pronto 😏</div></div></div>
+        <div class="pc"><div class="pca" data-face="lp"></div><div class="pcb"><div class="pcn">Lucas Peña</div><div class="pct">Esta vez tuviste suerte jaja. Nos vemos en la pista</div></div></div>
+      </div>
+    </div>
+    <div class="post">
+      <div class="ph-top"><div class="ph-av" data-face="pg"></div><div class="ph-meta"><div class="pn">Pablo Gil</div><div class="pt">hace 3 horas · Las Lomas</div></div><i class="ti ti-dots ph-more"></i></div>
+      <div class="ph-text">Mañana de tenis con esta vista. ¿Alguien se anima a un dobles el finde? 🎾☀️</div>
+      <div class="ph-img" style="background-image:url('https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=600&q=80')"></div>
+      <div class="ph-actions"><div class="ph-act liked" onclick="likePost(this)"><i class="ti ti-heart-filled"></i> <span>24</span></div><div class="ph-act"><i class="ti ti-message-circle"></i> 5</div><div class="ph-act" style="margin-left:auto"><i class="ti ti-share"></i></div></div>
+      <div class="ph-comments"><div class="pc"><div class="pca" data-face="cl"></div><div class="pcb"><div class="pcn">Carlos León</div><div class="pct">¡Yo me apunto! Te escribo</div></div></div></div>
+    </div>
+    <div class="post">
+      <div class="ph-top"><div class="ph-av" data-face="sr"></div><div class="ph-meta"><div class="pn">Sergio Romero</div><div class="pt">hace 6 horas</div></div><i class="ti ti-dots ph-more"></i></div>
+      <div class="ph-text">Nuevo por aquí, acabo de mudarme a Málaga. Busco gente para jugar entre semana por las tardes, nivel intermedio. ¡Un saludo! 👋</div>
+      <div class="ph-actions"><div class="ph-act" onclick="likePost(this)"><i class="ti ti-heart"></i> <span>8</span></div><div class="ph-act"><i class="ti ti-message-circle"></i> 2</div><div class="ph-act" style="margin-left:auto"><i class="ti ti-share"></i></div></div>
+    </div>
+  </div>
+  <div id="c-act" style="display:none">
+    <div class="feed">
+      <div class="fitem"><div class="fav" data-face="dr"></div><div class="ftx"><b>Dani Ruiz</b> ganó a <b>Lucas Peña</b><div class="ft">hace 1 hora · 6-3 6-4</div></div><div class="fbadge win"><i class="ti ti-trophy"></i></div></div>
+      <div class="fitem"><div class="fav" data-face="pg"></div><div class="ftx"><b>Pablo Gil</b> subió al puesto #19<div class="ft">hace 3 horas · +14 pts</div></div><div class="fbadge up"><i class="ti ti-trending-up"></i></div></div>
+      <div class="fitem"><div class="fav" data-face="jm"></div><div class="ftx"><b>Javi Morales</b> ganó a <b>Iván Marín</b><div class="ft">hace 4 horas · 7-5 6-4</div></div><div class="fbadge win"><i class="ti ti-trophy"></i></div></div>
+      <div class="fitem"><div class="fav" data-face="sr"></div><div class="ftx"><b>Sergio Romero</b> se unió a Ace<div class="ft">hace 5 horas · Club Las Lomas</div></div><div class="fbadge join"><i class="ti ti-user-plus"></i></div></div>
+      <div class="fitem"><div class="fav" data-face="cl"></div><div class="ftx"><b>Carlos León</b> subió al puesto #16<div class="ft">hace 1 día · +9 pts</div></div><div class="fbadge up"><i class="ti ti-trending-up"></i></div></div>
+    </div>
+  </div>
+</section>
+
+    <!-- ONBOARDING -->
+    <section class="screen noTab" id="s-onboarding">
+      <div class="ob">
+        <div class="step">Paso 2 de 3 · Tu nivel</div>
+        <div class="bl">A<span class="k">c</span>e</div>
+        <div class="tag">¿Cómo juegas? Esto nos ayuda a<br>emparejarte con rivales de tu nivel.</div>
+        <div class="lvc" onclick="tlv(this)"><div class="li"><i class="ti ti-seeding"></i></div><div class="lt"><b>Intermedio</b><small>Juego con cierta regularidad</small></div></div>
+        <div class="lvc sel" onclick="tlv(this)"><div class="li"><i class="ti ti-flame"></i></div><div class="lt"><b>Avanzado</b><small>Entreno y compito a menudo</small></div></div>
+        <div class="lvc" onclick="tlv(this)"><div class="li"><i class="ti ti-trophy"></i></div><div class="lt"><b>Competición</b><small>Federado o ex-federado</small></div></div>
+        <button class="btn" style="margin-left:0;margin-right:0;width:100%" onclick="go('home')">Continuar</button>
+        <p class="hint">El ranking se ajusta solo según ganes o pierdas.</p>
+      </div>
+    </section>
+
+  </div>
+
+  <nav class="tabs" id="tabs">
+    <div class="tab on" data-s="home" onclick="go('home')"><i class="ti ti-home"></i><span>Inicio</span></div>
+    <div class="tab" data-s="buscar" onclick="go('buscar')"><i class="ti ti-search"></i><span>Buscar</span></div>
+    <div class="tab" data-s="partido" onclick="go('partido')"><i class="ti ti-ball-tennis"></i><span>Partido</span></div>
+    <div class="tab" data-s="ranking" onclick="go('ranking')"><i class="ti ti-trophy"></i><span>Ranking</span></div>
+    <div class="tab" data-s="miperfil" onclick="go('miperfil')"><i class="ti ti-user"></i><span>Perfil</span></div>
+  </nav>
+</div>
+
+<script>
+const tabMap={home:'home',buscar:'buscar',partido:'partido',ranking:'ranking',miperfil:'miperfil',perfil:'buscar',perfilbad:'buscar',stats:'miperfil',reto:'buscar',chat:'home',notif:'home',torneos:'home',mapa:'home',compartir:'miperfil',onboarding:null};
+
+// ===== LÓGICA DEL PARTIDO =====
+let matchTimer=null, matchSecs=0;
+function startMatch(){
+  document.getElementById('ms-pre').style.display='none';
+  document.getElementById('ms-live').style.display='block';
+  matchSecs=0;
+  const t=document.getElementById('timer');
+  matchTimer=setInterval(function(){
+    matchSecs++;
+    const m=String(Math.floor(matchSecs/60)).padStart(2,'0');
+    const s=String(matchSecs%60).padStart(2,'0');
+    t.textContent=m+':'+s;
+  },1000);
+}
+function finishMatch(){
+  if(matchTimer){clearInterval(matchTimer);matchTimer=null;}
+  // Mostrar tiempo final (simulado más largo para realismo en la demo)
+  const shown = matchSecs<60 ? '42:15' : (String(Math.floor(matchSecs/60)).padStart(2,'0')+':'+String(matchSecs%60).padStart(2,'0'));
+  document.getElementById('finaltime').textContent=shown;
+  document.getElementById('ms-live').style.display='none';
+  document.getElementById('ms-result').style.display='block';
+  applyFaces();
+}
+function resetMatch(){
+  document.getElementById('ms-pre').style.display='block';
+  document.getElementById('ms-live').style.display='none';
+  document.getElementById('ms-result').style.display='none';
+}
+function go(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById('s-'+name);if(!el)return;
+  el.classList.add('active');
+  document.getElementById('tabs').style.display=(name==='onboarding'||name==='chat'||name==='notif'||name==='compartir')?'none':'flex';
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  const k=tabMap[name];if(k){const t=document.querySelector('.tab[data-s="'+k+'"]');if(t)t.classList.add('on');}
+  window.scrollTo(0,0);
+  if(name==='stats')setTimeout(animateBars,200);
+}
+// ===== FOTOS DE PERSONAS (stock, para la maqueta) =====
+const FACES={
+  jm:'https://randomuser.me/api/portraits/men/32.jpg',
+  cl:'https://randomuser.me/api/portraits/men/45.jpg',
+  dr:'https://randomuser.me/api/portraits/men/22.jpg',
+  as:'https://randomuser.me/api/portraits/men/67.jpg',
+  pg:'https://randomuser.me/api/portraits/men/51.jpg',
+  im:'https://randomuser.me/api/portraits/men/12.jpg',
+  lp:'https://randomuser.me/api/portraits/men/76.jpg',
+  mt:'https://randomuser.me/api/portraits/men/85.jpg',
+  sr:'https://randomuser.me/api/portraits/men/3.jpg',
+  nf:'https://randomuser.me/api/portraits/men/91.jpg',
+  lc:'https://randomuser.me/api/portraits/men/41.jpg',
+  rt:'https://randomuser.me/api/portraits/men/56.jpg',
+  bg:'https://randomuser.me/api/portraits/men/18.jpg'
+};
+function applyFaces(){
+  document.querySelectorAll('[data-face]').forEach(el=>{
+    const key=el.getAttribute('data-face');
+    if(FACES[key]){el.style.backgroundImage='url('+FACES[key]+')';el.classList.add('photo');}
+  });
+}
+document.addEventListener('DOMContentLoaded',applyFaces);
+
+function toggleTheme(){
+  const h=document.documentElement;
+  const cur=h.getAttribute('data-theme');
+  const nw=cur==='light'?'dark':'light';
+  h.setAttribute('data-theme',nw);
+  const tb=document.getElementById('themebtn');
+  tb.innerHTML=nw==='light'?'<i class="ti ti-moon"></i>':'<i class="ti ti-sun"></i>';
+  tb.classList.remove('spin');void tb.offsetWidth;tb.classList.add('spin');
+}
+function tlv(c){document.querySelectorAll('.lvc').forEach(x=>x.classList.remove('sel'));c.classList.add('sel');}
+function tchip(c){c.parentElement.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');}
+function tmode(b,m){b.parentElement.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');document.getElementById('m-i').style.display=m==='i'?'block':'none';document.getElementById('m-d').style.display=m==='d'?'block':'none';}
+let W='A';
+function pickW(s){W=s;const a=document.getElementById('sdA'),b=document.getElementById('sdB');a.classList.toggle('w',s==='A');b.classList.toggle('w',s==='B');}
+function sendM(i){if(!i.value.trim())return;const bd=document.querySelector('.chbody');const e=document.createElement('div');e.className='bub me justsent';e.textContent=i.value;bd.appendChild(e);i.value='';window.scrollTo(0,document.body.scrollHeight);}
+
+// Toggle disponible con animación
+function toggleAvail(t){t.classList.toggle('off');t.classList.remove('justchanged');void t.offsetWidth;t.classList.add('justchanged');}
+
+// Retar/invitar: pop + toast, sin cambiar de pantalla bruscamente
+function challengeAction(btn,ev){
+  ev.stopPropagation();
+  btn.classList.remove('pop-anim');void btn.offsetWidth;btn.classList.add('pop-anim');
+  const orig=btn.textContent;
+  btn.textContent='✓';
+  miniToast('Reto enviado a '+(btn.dataset.nm||'jugador'));
+  setTimeout(()=>{go('reto')},650);
+}
+
+// Ripple en botones principales
+function addRipple(e){
+  const b=e.currentTarget;
+  const r=document.createElement('span');r.className='ripple';
+  const rect=b.getBoundingClientRect();
+  const size=Math.max(rect.width,rect.height);
+  r.style.width=r.style.height=size+'px';
+  r.style.left=(e.clientX-rect.left-size/2)+'px';
+  r.style.top=(e.clientY-rect.top-size/2)+'px';
+  b.appendChild(r);setTimeout(()=>r.remove(),600);
+}
+function miniToast(msg){
+  const t=document.getElementById('minitoast');
+  t.innerHTML='<i class="ti ti-circle-check"></i> '+msg;
+  t.classList.remove('show');void t.offsetWidth;t.classList.add('show');
+}
+
+// Aplicar ripple a todos los botones principales al cargar
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('.btn,.pbtn,.cta,.pbtn2').forEach(b=>b.addEventListener('click',addRipple));
+});
+
+/* ===== ANIMACIONES ===== */
+// Ocultar splash al cargar → entrar directo al home
+window.addEventListener('load',function(){
+  setTimeout(function(){
+    document.getElementById('splash').classList.add('hide');
+    setTimeout(countUp,400); // animar números del home al entrar
+  },900);
+});
+
+// ===== FLUJO DE REGISTRO =====
+function checkName(){
+  const v=document.getElementById('su-name').value.trim();
+  document.getElementById('su-b1').disabled = v.length<2;
+}
+function suNext(step){
+  document.getElementById('su-'+step).classList.remove('active');
+  document.getElementById('su-'+(step+1)).classList.add('active');
+  document.getElementById('sb'+step).classList.add('done');
+}
+function suPrev(step){
+  document.getElementById('su-'+(step+1)).classList.remove('active');
+  document.getElementById('su-'+step).classList.add('active');
+  document.getElementById('sb'+step).classList.remove('done');
+}
+function suPick(el,group){
+  el.parentElement.querySelectorAll('.su-opt').forEach(x=>x.classList.remove('sel'));
+  el.classList.add('sel');
+  if(group==='zona')document.getElementById('su-b2').disabled=false;
+  if(group==='nivel')document.getElementById('su-b3').disabled=false;
+}
+function suCreate(){
+  document.getElementById('su-3').classList.remove('active');
+  document.getElementById('sb3').classList.add('done');
+  document.getElementById('su-creating').classList.add('active');
+  // Secuencia de mensajes mientras "crea"
+  const msgs=['Buscando jugadores de tu nivel cerca','Preparando el ranking de Málaga','Casi listo...'];
+  let i=0;
+  const cmsg=document.getElementById('su-cmsg');
+  const seq=setInterval(function(){
+    i++;
+    if(i<msgs.length){cmsg.style.opacity=0;setTimeout(()=>{cmsg.textContent=msgs[i];cmsg.style.opacity=1},250);}
+  },750);
+  // Tras 2.4s: check y entrar al home
+  setTimeout(function(){
+    clearInterval(seq);
+    document.getElementById('su-spin').style.display='none';
+    document.getElementById('su-checkmark').classList.add('show');
+    document.getElementById('su-ctitle').textContent='¡Perfil creado!';
+    cmsg.style.opacity=0;setTimeout(()=>{cmsg.textContent='Bienvenido a Ace, Bruno';cmsg.style.opacity=1},250);
+    setTimeout(function(){
+      document.getElementById('signup').classList.remove('show');
+      setTimeout(countUp,300); // animar números del home
+    },1100);
+  },2400);
+}
+
+// Contador de números en el home
+function countUp(){
+  animateNum("rankNum",14,650,'');
+  animateNum('ptsNum',1240,750,'.');
+}
+function animateNum(id,target,dur,sep){
+  const el=document.getElementById(id);if(!el)return;
+  const start=performance.now();
+  const from=Math.max(0,target-(target>100?180:8));
+  function tick(now){
+    const p=Math.min((now-start)/dur,1);
+    const eased=1-Math.pow(1-p,3);
+    let val=Math.round(from+(target-from)*eased);
+    el.textContent=sep==='.'?val.toLocaleString('es-ES'):val;
+    if(p<1)requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+// Barras de la gráfica
+function animateBars(){
+  const b=document.getElementById('evobars');
+  if(b){b.classList.remove('animate');void b.offsetWidth;b.classList.add('animate');}
+}
+
+// Confeti
+function fireConfetti(){
+  const c=document.getElementById('confetti');
+  c.classList.add('show');c.innerHTML='';
+  const colors=['#1F7A43','#D8E83C','#2BA45C','#43C57D','#176235'];
+  for(let i=0;i<45;i++){
+    const p=document.createElement('div');
+    p.className='cfp';
+    p.style.left=Math.random()*100+'%';
+    p.style.background=colors[Math.floor(Math.random()*colors.length)];
+    p.style.animationDelay=Math.random()*0.5+'s';
+    p.style.animationDuration=(1.8+Math.random()*1.2)+'s';
+    if(Math.random()>0.5)p.style.borderRadius='50%';
+    c.appendChild(p);
+  }
+  setTimeout(()=>{c.classList.remove('show')},3000);
+}
+
+// Toast de puntos
+function pointsToast(pts){
+  const t=document.getElementById('ptoast');
+  t.innerHTML='+'+pts+' pts<div class="ptsub">¡Subes en el ranking!</div>';
+  t.classList.remove('show');void t.offsetWidth;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),1800);
+}
+
+// Confirmar resultado → celebración
+function confR(b){
+  b.textContent='✓ Resultado enviado';b.style.background='var(--green)';b.style.color='#fff';
+  fireConfetti();
+  setTimeout(()=>pointsToast(18),300);
+  setTimeout(()=>{go("compartir");resetMatch();},1500);
+}
+</script>
+</body>
+</html>
